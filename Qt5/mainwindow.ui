@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>753</width>
+    <height>503</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <widget class="QWidget" name="horizontalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>341</width>
+      <height>451</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QListWidget" name="listWidget">
+       <item>
+        <property name="text">
+         <string>lorem ipsum</string>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>22</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>New Item</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>New Item</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>New Item</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>New Item</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="horizontalLayoutWidget_2">
+    <property name="geometry">
+     <rect>
+      <x>400</x>
+      <y>10</y>
+      <width>341</width>
+      <height>451</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <widget class="QListWidget" name="listWidget_2">
+       <item>
+        <property name="text">
+         <string>vedi vini vici</string>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>22</pointsize>
+         </font>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>New Item</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>New Item</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>New Item</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>New Item</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>New Item</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>753</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuOpen">
+    <property name="toolTip">
+     <string/>
+    </property>
+    <property name="statusTip">
+     <string/>
+    </property>
+    <property name="title">
+     <string>Open</string>
+    </property>
+    <widget class="QMenu" name="menuOpen_recent">
+     <property name="title">
+      <string>Open recent</string>
+     </property>
+     <addaction name="actionRecents"/>
+    </widget>
+    <addaction name="actiontet"/>
+    <addaction name="menuOpen_recent"/>
+   </widget>
+   <widget class="QMenu" name="menuSave">
+    <property name="toolTip">
+     <string/>
+    </property>
+    <property name="title">
+     <string>Save</string>
+    </property>
+    <addaction name="actionSave_2"/>
+    <addaction name="actionSave_as"/>
+   </widget>
+   <addaction name="menuOpen"/>
+   <addaction name="menuSave"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <action name="actionSave_as">
+   <property name="text">
+    <string>Save as</string>
+   </property>
+  </action>
+  <action name="actionSave_2">
+   <property name="text">
+    <string>Save</string>
+   </property>
+   <property name="statusTip">
+    <string>Save current file</string>
+   </property>
+  </action>
+  <action name="actionRecents">
+   <property name="text">
+    <string>Recents</string>
+   </property>
+  </action>
+  <action name="actiontet">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Open</string>
+   </property>
+   <property name="toolTip">
+    <string>Open</string>
+   </property>
+   <property name="statusTip">
+    <string>Open a file</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="text">
+    <string>Save</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>MainWindow</sender>
+   <signal>objectNameChanged(QString)</signal>
+   <receiver>listWidget</receiver>
+   <slot>clear()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>376</x>
+     <y>251</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>180</x>
+     <y>256</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
