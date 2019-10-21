@@ -1,8 +1,5 @@
+from PyQt5.QtWidgets import (QWidget, QPushButton, QLineEdit, QInputDialog, QApplication)
 import sys
-from PyQt5.QtWidgets import (QWidget, QListWidgetItem, QListWidget, QGridLayout, QApplication)
-from PyQt5.QtGui import QFont
-
-
 
 class Example(QWidget):
     
@@ -12,33 +9,27 @@ class Example(QWidget):
         self.initUI()
         
         
-    def initUI(self):
+    def initUI(self):      
 
-        def set_font(text):  
-                item = QListWidgetItem()
-                item.setText(text)
-                font = QFont()
-                font.setPointSize(17)
-                font.setFamily('Helvatica')
-                item.setFont(font)
-                return item
-
-        list_1 = QListWidget()
-        list_1.addItem(set_font('lol'))
-
-        list_2 = QListWidget()
-        list_2.addItem(set_font('oof'))
-
-        grid = QGridLayout()
-        grid.setSpacing(10)
-        grid.addWidget(list_1, 1, 0)
-        grid.addWidget(list_2, 1, 1)
+        self.btn = QPushButton('Dialog', self)
+        self.btn.move(20, 20)
+        self.btn.clicked.connect(self.showDialog)
         
-        self.setLayout(grid) 
+        self.le = QLineEdit(self)
+        self.le.move(130, 22)
         
-        self.setGeometry(300, 300, 350, 300)
-        self.setWindowTitle('Review')    
+        self.setGeometry(300, 300, 290, 150)
+        self.setWindowTitle('Input dialog')
         self.show()
+        
+        
+    def showDialog(self):
+        
+        text, ok = QInputDialog.getText(self, 'Input Dialog', 
+            'Enter your name:')
+        
+        if ok:
+            self.le.setText(str(text))
         
         
 if __name__ == '__main__':
