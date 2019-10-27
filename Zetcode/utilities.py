@@ -19,9 +19,9 @@ def set_font(text):
     return item
 
 
-def lister(target, *items):
+def lister(target, idx):
 
-    for name in items:
+    for name in reader('french.csv', index=idx):
         target.addItem(set_font(name)) # add a dict for loop or lambda?
 
 
@@ -29,14 +29,14 @@ def style(obj):
     obj.setStyleSheet("color: rgb(0, 0, 0);") # fixes a bug that causes the options to use the style sheet of the menubar, rendering them invisible
 
 
-def reader(filename):
+def reader(filename, index):
 
-    with open(filename, 'r') as f:
+    with open(filename, 'r', encoding="utf8") as f:
         f_read = csv.reader(f) # DictReader or reader
         next(f_read)
 
         for line in f_read:
-            yield line[0:2]
+            yield line[index]
 
-# for line in reader('french.csv'):
+# for line in reader('french.csv', 0):
 #     print(line)

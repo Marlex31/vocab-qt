@@ -16,25 +16,25 @@ class Example(QWidget):
     def initUI(self):
 
         list_1 = QListWidget()
-        lister(list_1, 'test1', 'test2', 'test3')
+        lister(list_1, 0)
         list_1.sortItems() # 1 for descending, see sort for only one column
         all_items =  [list_1.item(i).text() for i in range(list_1.count())]
         # print(all_items)
 
         list_2 = QListWidget()
-        lister(list_2, 'test1')
+        lister(list_2, 1)
 
         global list_3
         list_3 = QListWidget()
-        lister(list_3, 'ito')
+        lister(list_3, 2)
         list_3.setHidden(True)
-        # list_3.itemSelectionChanged.connect(self.pressed) # change to menu option trigger and replace sender()
+        list_3.itemSelectionChanged.connect(self.pressed) # change to menu option trigger and replace sender()
 
 
         menubar = QMenuBar()
         menubar.setNativeMenuBar(False)
         # menubar.setStyleSheet("border: 1px solid #808080")
-        menubar.setStyleSheet("background-color: rgb(240, 240, 240);")
+        menubar.setStyleSheet("background-color: rgb(240, 240, 240);") # blending the toolbar with the app bg
 
         showAct = QAction('Show kanji', self, checkable=True)  
         showAct.setChecked(False)
