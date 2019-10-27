@@ -90,8 +90,6 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
 
-        data = {'coup de foudre':'fulger'}
-
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         __sortingEnabled = self.listWidget.isSortingEnabled()
