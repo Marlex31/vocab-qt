@@ -19,10 +19,10 @@ def set_font(text):
     return item
 
 
-def lister(target, idx):
+def lister(target, index):
 
-    for name in reader('french.csv', index=idx):
-        target.addItem(set_font(name)) # add a dict for loop or lambda?
+    for name in reader('french.csv', index=index): # get path through the dialog
+        target.addItem(set_font(name)) 
 
 
 def style(obj):
@@ -38,5 +38,51 @@ def reader(filename, index):
         for line in f_read:
             yield line[index]
 
-# for line in reader('french.csv', 0):
-#     print(line)
+############################################################################################################################################################################
+
+def writer(filename, *args):
+
+    with open(filename, 'w', encoding='utf8') as w:
+        w_write = csv.writer(w, delimiter=',')
+        for arg in args:
+            w_write.writerow(arg)
+
+# writer("comma_file.csv", ['ici', 'here', '', 'non', 'no', '', 'oui', 'yes', 'はい'])t
+
+
+def total_items(QList):
+
+    all_items =  [QList.item(i).text() for i in range(QList.count())]
+    return all_items
+
+
+
+def test_reader():
+
+    import operator
+    with open('french.csv', 'r', encoding="utf8") as f:
+        f_read = csv.reader(f)
+        next(f_read)
+
+        sortedList = sorted(f_read, key=operator.itemgetter(0), reverse=False)
+        print(sortedList)
+
+# test_reader()
+
+
+# from collections import OrderedDict
+# with open('french.csv', 'r', encoding="utf8") as f:
+#     f_read = csv.DictReader(f) # DictReader or reader
+
+#     for line in f_read:
+#         # print(line)
+
+#         dictionary = dict(line)
+#         print(dictionary)
+
+
+# fieldnames = ["word_1","word_2","kanji","date_added"]
+# with open('comma_file.csv', 'w', encoding='utf8') as w:
+#     w_write = csv.DictWriter(w, delimiter=',', fieldnames=fieldnames)
+#     w_write.writeheader()
+#     w_write.writerow(dictionary)
