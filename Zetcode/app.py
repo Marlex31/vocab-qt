@@ -52,7 +52,7 @@ class Example(QWidget):
 		fileOpen.setShortcut('Ctrl+O')
 
 		fileSave = QAction('Save file', self)
-		fileSave.triggered.connect(self.update)
+		fileSave.triggered.connect(self.save)
 		fileSave.setShortcut('Ctrl+S')
 
 		style(fileMenu)
@@ -84,24 +84,19 @@ class Example(QWidget):
 		fname = QFileDialog()
 		path = fname.getOpenFileName(self, 'Open file', '/french.csv', filter='txt (*.txt);;All files (*.*)') # could use this for recents, also change the second parameter to the last opened file
 		print(path[0])
-	
-
-	def saver(self):
-		pass
 
 
-	def update(self): # use itemSelectionChanged to trigger this
+	def save(self): # use itemSelectionChanged to trigger this
 
 		list1_items = total_items(list_1)
 		list2_items = total_items(list_2)
 		list3_items = total_items(list_3)
 
-		# print(list1_items, list2_items, list3_items)
-		# cols = []
-		# for (a, b, c) in zip(list1_items, list2_items, list3_items): # each letter is a column
-		# 	print(a, b, c)
-		# 	cols.extend([a,b,c])
-		# print(cols)
+		total_dicts = []
+		for (a, b, c) in zip(list1_items, list2_items, list3_items): # each letter is a column
+			dictionary = {'word_1':a, 'word_2':b, 'notes':c}
+			total_dicts.append(dictionary)
+		writer(total_dicts)
 
 if __name__ == '__main__':
 	
