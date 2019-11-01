@@ -18,23 +18,23 @@ class Example(QWidget):
 		global list_1
 		list_1 = QListWidget()
 		lister(list_1, 0)
-		# list_1.sortItems() # 1 for descending, see sort for only one column
+		list_1.clicked.connect(self.clear) 
+		# list_1.sortItems() # 1 for descending
 
 		global list_2
 		list_2 = QListWidget()
 		lister(list_2, 1)
+		list_2.clicked.connect(self.clear)
 
 		global list_3
 		list_3 = QListWidget()
 		lister(list_3, 2)
-
+		list_3.clicked.connect(self.clear)
 		list_3.setHidden(True)
-		# list_3.itemSelectionChanged.connect(self.pressed) # change to menu option trigger and replace sender()
 
 
 		menubar = QMenuBar()
 		menubar.setNativeMenuBar(False)
-		# menubar.setStyleSheet("border: 1px solid #808080")
 		menubar.setStyleSheet("background-color: rgb(240, 240, 240);") # blending the toolbar with the app bg
 
 		showAct = QAction('Show kanji', self, checkable=True)  
@@ -77,6 +77,30 @@ class Example(QWidget):
 		
 		# if e.key() == Qt.Key_E: # ctrl+e
 		list_3.setHidden(not list_3.isHidden())
+		self.add_item()
+
+
+	def add_item(self): # under testing
+
+		for x in range(3):	
+			if x == 0:
+				lister(list_1, x, 1)
+
+			elif x == 1:
+				lister(list_2, x, 1)
+
+			elif x == 2:
+				lister(list_3, x, 1)
+
+		item =  list_1.item(list_1.count()-1) # use itemChanged to jump to the next column and edit
+		list_1.editItem(item)
+
+	def clear(self):
+		"""Clears all item slections for aesthetical purposes"""
+
+		list_1.clearSelection()
+		list_2.clearSelection()
+		list_3.clearSelection()
 
 
 	def fileDialog(self):
@@ -96,6 +120,7 @@ class Example(QWidget):
 		for (a, b, c) in zip(list1_items, list2_items, list3_items): # each letter is a column
 			dictionary = {'word_1':a, 'word_2':b, 'notes':c}
 			total_dicts.append(dictionary)
+			s
 		writer(total_dicts)
 
 if __name__ == '__main__':
