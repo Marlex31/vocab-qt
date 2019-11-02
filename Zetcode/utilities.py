@@ -37,8 +37,8 @@ def style(obj):
 	obj.setStyleSheet("color: rgb(0, 0, 0);") # fixes a bug that causes the options to use the style sheet of the menubar, rendering them invisible
 
 
-def reader(filename, index):
-
+def reader(filename, index): # add try and except for generating a template with 3 items
+ 
 	with open(filename, 'r', encoding="utf8") as f:
 		f_read = csv.reader(f) 
 		next(f_read)
