@@ -1,6 +1,7 @@
 import sys
-from PyQt5.QtWidgets import QWidget, QListWidget, QGridLayout, QApplication, QMenuBar, QAction, qApp, QLineEdit, QAbstractItemView
+from PyQt5.QtWidgets import QWidget, QListWidget, QGridLayout, QApplication, QMenuBar, QAction, qApp, QLineEdit, QAbstractItemView, QStyle, QFileDialog
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QPalette, QColor
 
 from utilities import *
 
@@ -15,27 +16,26 @@ class Example(QWidget):
 
 	def initUI(self):
 
-		global list_1
-		list_1 = QListWidget()
-		lister(list_1, 0)
-		list_1.clicked.connect(self.clear) 
-		# list_1.sortItems() # 1 for descending
+		self.num = -1 # index for search bar query
 
-		global list_2
-		list_2 = QListWidget()
-		lister(list_2, 1)
-		list_2.clicked.connect(self.clear)
+		self.list_1 = QListWidget()
+		lister(self.list_1, 0)
+		self.list_1.clicked.connect(self.clear) 
+		# self.list_1.sortItems() # 1 for descending
 
-		global list_3
-		list_3 = QListWidget()
-		lister(list_3, 2)
-		list_3.clicked.connect(self.clear)
-		list_3.setHidden(True)
+		self.list_2 = QListWidget()
+		lister(self.list_2, 1)
+		self.list_2.clicked.connect(self.clear)
+
+		self.list_3 = QListWidget()
+		lister(self.list_3, 2)
+		self.list_3.clicked.connect(self.clear)
+		self.list_3.setHidden(True)
 
 
-		menubar = QMenuBar()
-		menubar.setNativeMenuBar(False)
-		menubar.setStyleSheet("background-color: rgb(240, 240, 240);") # blending the toolbar with the app bg
+		self.menubar = QMenuBar()
+		self.menubar.setNativeMenuBar(False)
+		self.menubar.setStyleSheet("background-color: rgb(240, 240, 240);") # blends menubar with app bg
 
 
 		showAct = QAction('Show kanji', self, checkable=True)  
@@ -47,16 +47,6 @@ class Example(QWidget):
 		addAct.setShortcut('Ctrl+N')
 		addAct.triggered.connect(self.add_item)
 
-
-		addMenu = menubar.addMenu('Add')
-		style(addMenu)
-		addMenu.addAction(addAct)
-
-		optionMenu = menubar.addMenu('Options')
-		style(optionMenu)
-		optionMenu.addAction(showAct)
-
-		fileMenu = menubar.addMenu('File')
 		fileOpen = QAction('Open file', self)
 		fileOpen.triggered.connect(self.fileDialog)
 		fileOpen.setShortcut('Ctrl+O')
@@ -65,26 +55,40 @@ class Example(QWidget):
 		fileSave.triggered.connect(self.save)
 		fileSave.setShortcut('Ctrl+S')
 
-		style(fileMenu)
-		fileMenu.addAction(fileOpen)
-		fileMenu.addAction(fileSave)
+		self.toggle_theme = QAction('Toggle theme', self, checkable=True)
+		self.toggle_theme.setChecked(j_theme())
+		self.toggle_theme.triggered.connect(self.theme)
+		self.toggle_theme.setShortcut('Ctrl+T')
+
+		self.addFields = self.menubar.addMenu('Add')
+		light_style(self.addFields)
+		self.addFields.addAction(addAct)
+
+		self.optionMenu = self.menubar.addMenu('Options')
+		light_style(self.optionMenu)
+		self.optionMenu.addAction(showAct)
+		self.optionMenu.addAction(self.toggle_theme)
+
+		self.fileMenu = self.menubar.addMenu('File')
+		light_style(self.fileMenu)
+		self.fileMenu.addAction(fileOpen)
+		self.fileMenu.addAction(fileSave)
 
 
-		global search_bar
-		search_bar = QLineEdit()
-		search_bar.setPlaceholderText('Search vocab')
-		search_bar.setClearButtonEnabled(True)
-		search_bar.setMaxLength(10)
-		search_bar.returnPressed.connect(self.scroll_to)
-
+		self.search_bar = QLineEdit()
+		self.search_bar.setPlaceholderText('Search vocab')
+		self.search_bar.setClearButtonEnabled(True)
+		self.search_bar.setMaxLength(10)
+		self.search_bar.returnPressed.connect(self.scroll_to)
+		# self.search_bar.returnPressed.connect(lambda arg=0: self.scroll_to(arg))
 
 		grid = QGridLayout()
 		grid.setSpacing(10)
-		grid.addWidget(menubar, 0, 0)
-		grid.addWidget(list_1, 1, 0)
-		grid.addWidget(list_2, 1, 1)
-		grid.addWidget(list_3, 1, 2)
-		grid.addWidget(search_bar, 0, 1)
+		grid.addWidget(self.menubar, 0, 0)
+		grid.addWidget(self.list_1, 1, 0)
+		grid.addWidget(self.list_2, 1, 1)
+		grid.addWidget(self.list_3, 1, 2)
+		grid.addWidget(self.search_bar, 0, 1)
 
 		self.setLayout(grid)      
 		self.setGeometry(300, 300, 350, 300)
@@ -92,51 +96,89 @@ class Example(QWidget):
 		self.show()
 
 
-	def pressed(self): #, e
+	def pressed(self): 
+		"""Toggles showing the note column and stretches the window for clearer reading of it"""
+
+		self.list_3.setHidden(not self.list_3.isHidden())
+		self.setGeometry(300, 300, 600, 300) 
+ 	
+
+	def theme(self):
+		palette = QPalette()
+		all_lists = [self.list_1, self.list_2, self.list_3]
+
+		# dark theme
+		if  self.toggle_theme.isChecked() == True:
+			palette.setColor(QPalette.Window, QColor(0, 0, 0))
+			extra_dark_bg = "background-color: rgb(0, 0, 0); color: rgb(255, 255, 255);"
+
+			self.menubar.setStyleSheet(extra_dark_bg) 
+			self.addFields.setStyleSheet(extra_dark_bg)
+			self.optionMenu.setStyleSheet(extra_dark_bg)
+			self.fileMenu.setStyleSheet(extra_dark_bg)
+			self.search_bar.setStyleSheet("background-color: rgb(0, 0, 0); color: rgb(255, 255, 255)") # border: 0px; for transparency
+
+			total_items(all_lists, dark_theme=True)
 		
-		# if e.key() == Qt.Key_E: # ctrl+e
-		list_3.setHidden(not list_3.isHidden())
+		# light theme
+		elif  self.toggle_theme.isChecked() == False:
+			palette.setColor(QPalette.Window, QColor(255, 255, 255))
 
+			self.menubar.setStyleSheet("background-color: rgb(255, 255, 255);") 
+			self.search_bar.setStyleSheet("background-color: rgb(255, 255, 255); color: rgb(0, 0, 0)")
 
+			total_items(all_lists, dark_theme=False)
+
+		self.setPalette(palette)
+
+		self.theme_bool = self.toggle_theme.isChecked() # used in the save func
+ 
 	def scroll_to(self):
-		"""Takes input from the search bar and matches with an item, gets index and scrolls to it""" 
+		"""Takes input from the search bar and matches with an item, gets index and scrolls to it, more reusults being qued with the num class var""" 
 
-		query = search_bar.text()
-		search = list_1.findItems(query, Qt.MatchContains) # add search que, for multiple item matches
+		query = self.search_bar.text()
+		search = self.list_1.findItems(query, Qt.MatchContains) 
+		
+		self.num+=1
 		for i in search:
 
-			model_index = list_1.indexFromItem(i)
+			try:
+				model_index = self.list_1.indexFromItem(search[self.num]) 
+
+			except:
+				self.num = 0
+				model_index = self.list_1.indexFromItem(search[self.num]) 
+
 			item_index = model_index.row()
 
-			list_1.item(item_index).setSelected(True)
-			list_1.scrollToItem(list_1.item(item_index), QAbstractItemView.PositionAtCenter)
+			self.list_1.item(item_index).setSelected(True)
+			self.list_1.scrollToItem(self.list_1.item(item_index), QAbstractItemView.PositionAtCenter)
 
-			list_2.scrollToItem(list_2.item(item_index), QAbstractItemView.PositionAtCenter)
-			list_3.scrollToItem(list_3.item(item_index), QAbstractItemView.PositionAtCenter)
-
+			self.list_2.scrollToItem(self.list_2.item(item_index), QAbstractItemView.PositionAtCenter)
+			self.list_3.scrollToItem(self.list_3.item(item_index), QAbstractItemView.PositionAtCenter)
 
 
 	def add_item(self): # add auto-jumping to the next item when finished editing current
 
 		for x in range(3):	
 			if x == 0:
-				lister(list_1, x, 1)
+				lister(self.list_1, x, 1)
 
 			elif x == 1:
-				lister(list_2, x, 1)
+				lister(self.list_2, x, 1)
 
 			elif x == 2:
-				lister(list_3, x, 1)
+				lister(self.list_3, x, 1)
 
-		item =  list_1.item(list_1.count()-1) # use itemChanged to jump to the next column and edit
-		list_1.editItem(item)
+		item =  self.list_1.item(self.list_1.count()-1) # use itemChanged to jump to the next column and edit
+		self.list_1.editItem(item)
 
 	def clear(self):
 		"""Clears all item slections for aesthetical purposes"""
 
-		list_1.clearSelection()
-		list_2.clearSelection()
-		list_3.clearSelection()
+		self.list_1.clearSelection()
+		self.list_2.clearSelection()
+		self.list_3.clearSelection()
 
 
 	def fileDialog(self):
@@ -148,9 +190,9 @@ class Example(QWidget):
 
 	def save(self): # use itemSelectionChanged to trigger not saved dialog
 
-		list1_items = total_items(list_1)
-		list2_items = total_items(list_2)
-		list3_items = total_items(list_3)
+		list1_items = items_text(self.list_1)
+		list2_items = items_text(self.list_2)
+		list3_items = items_text(self.list_3)
 
 		total_dicts = []
 		for (a, b, c) in zip(list1_items, list2_items, list3_items): # each letter is a column
@@ -158,9 +200,15 @@ class Example(QWidget):
 			total_dicts.append(dictionary)
 			
 		writer(total_dicts)
+		
+		try:
+			j_template(self.theme_bool)
+		except:
+			j_template() # bug cannot be avoided, even though used setChecked at the beggining
 
 if __name__ == '__main__':
 	
 	app = QApplication(sys.argv)
 	ex = Example()
+	ex.theme()
 	sys.exit(app.exec_())
