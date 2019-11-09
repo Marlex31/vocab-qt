@@ -34,13 +34,6 @@ def lister(target, index, mode=0):
 		target.addItem(set_font(''))
 
 
-
-def light_style(obj):
-	"""Fixes a bug that causes the options to use the style sheet of the menubar, rendering them invisible"""
-
-	obj.setStyleSheet("color: rgb(0, 0, 0);") 
-
-
 def reader(filename, index): # add try and except for generating a template with 3 items
  
 	with open(filename, 'r', encoding="utf8") as f:
@@ -52,6 +45,7 @@ def reader(filename, index): # add try and except for generating a template with
 
 
 def writer(data):
+	"""Writes the contents of the lists inside csv files"""
 
 	fieldnames = ["word_1","word_2","notes","date_added"]
 	with open('french.csv', 'w', encoding='utf8', newline='') as w:
@@ -67,7 +61,8 @@ def items_text(QList):
 	all_items =  [QList.item(i).text() for i in range(QList.count())]
 	return all_items
 
-def total_items(QLists, dark_theme=False):
+def style_items(QLists, dark_theme=False):
+	"""Stylizes the QListWidget items for light and dark themes"""
 
 	for QList in QLists:
 		items =  list(QList.item(i) for i in range(QList.count()))
@@ -80,6 +75,12 @@ def total_items(QLists, dark_theme=False):
 			else:
 				item.setForeground(QColor(240, 240, 240))
 				QList.setStyleSheet("background-color: rgb(0, 0, 0);")
+
+
+def status(bar, list_widget, message=''):
+	"""Sets text displayed by status bar"""
+
+	bar.showMessage(f"Total items: {list_widget.count()}. {message}")
 
 ############################################################################################################################################################################
  
@@ -95,6 +96,7 @@ def test_reader():
 # test_reader()
 
 def j_template(theme=False):
+	"""Creates a json config file"""
 
 	try:
 		with open('settings.json', 'r') as r:
@@ -116,6 +118,7 @@ def j_template(theme=False):
 # j_template()
 
 def j_theme():
+	"""Returns the theme settings saved in the json config file, used on start-up of the program"""
 
 	try:
 		with open('settings.json', 'r') as r:

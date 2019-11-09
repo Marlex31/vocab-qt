@@ -1,7 +1,7 @@
 import sys
 
-from PyQt5.QtWidgets import QApplication, QWidget, QMessageBox, QPushButton, QDesktopWidget
-from PyQt5.QtGui import QIcon, QFont
+from PyQt5.QtWidgets import QApplication, QWidget, QMessageBox, QDesktopWidget
+from PyQt5.QtGui import QIcon
 
 class Example(QWidget):
 

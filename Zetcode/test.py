@@ -1,17 +1,33 @@
-import json
+import sys
+from PyQt5 import QtCore, QtWidgets
 
-settings = {'first_launch':True, 'dark_theme':False, 'recent_files':[None, None, None]}
+class Dialog(QtWidgets.QDialog):
+    def __init__(self, parent=None):
+        super(Dialog, self).__init__()
+        self.listWidget = QtWidgets.QListWidget()
+        self.listWidget.addItems('One Two Three'.split())
+        self.listWidget.installEventFilter(self)
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.addWidget(self.listWidget)
 
-d1 = False
-d2 = True
-d3 = ['french.csv', 'comma_file.csv', None]
-# settings.update(zip(settings.keys(), [d1,d2,d3]))
+    def eventFilter(self, source, event):
+        if (event.type() == QtCore.QEvent.ContextMenu and
+            source is self.listWidget):
+            menu = QtWidgets.QMenu()
+            menu.addAction('Open Window')
+            if menu.exec_(event.globalPos()):
+                item = source.itemAt(event.pos())
+                try:
+                    print(item.text())
+                except:
+                    print(None)
+            return True
+        return super(Dialog, self).eventFilter(source, event)
 
-with open('settings.json', 'w') as w:
-    json.dump(settings, w) # indent=2
+if __name__ == '__main__':
 
-
-with open('settings.json', 'r') as r:
-    data = json.load(r)
-    print(data)
-
+    app = QtWidgets.QApplication(sys.argv)
+    window = Dialog()
+    window.setGeometry(600, 100, 300, 200)
+    window.show()
+    sys.exit(app.exec_())

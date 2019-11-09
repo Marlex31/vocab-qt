@@ -1,6 +1,6 @@
 import sys
-from PyQt5.QtWidgets import QWidget, QListWidget, QGridLayout, QApplication, QMenuBar, QAction, qApp, QLineEdit, QAbstractItemView, QStyle, QFileDialog
-from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QWidget, QListWidget, QGridLayout, QApplication, QMenuBar, QAction, qApp, QLineEdit, QAbstractItemView, QStyle, QFileDialog, QMenu, QStatusBar
+from PyQt5.QtCore import Qt, QEvent
 from PyQt5.QtGui import QPalette, QColor
 
 from utilities import *
@@ -21,6 +21,7 @@ class Example(QWidget):
 		self.list_1 = QListWidget()
 		lister(self.list_1, 0)
 		self.list_1.clicked.connect(self.clear) 
+		self.list_1.installEventFilter(self)
 		# self.list_1.sortItems() # 1 for descending
 
 		self.list_2 = QListWidget()
@@ -35,10 +36,9 @@ class Example(QWidget):
 
 		self.menubar = QMenuBar()
 		self.menubar.setNativeMenuBar(False)
-		self.menubar.setStyleSheet("background-color: rgb(240, 240, 240);") # blends menubar with app bg
 
 
-		showAct = QAction('Show kanji', self, checkable=True)  
+		showAct = QAction('Show extras', self, checkable=True)  
 		showAct.setChecked(False)
 		showAct.setShortcut('Ctrl+E')
 		showAct.triggered.connect(self.pressed)
@@ -61,16 +61,13 @@ class Example(QWidget):
 		self.toggle_theme.setShortcut('Ctrl+T')
 
 		self.addFields = self.menubar.addMenu('Add')
-		light_style(self.addFields)
 		self.addFields.addAction(addAct)
 
 		self.optionMenu = self.menubar.addMenu('Options')
-		light_style(self.optionMenu)
 		self.optionMenu.addAction(showAct)
 		self.optionMenu.addAction(self.toggle_theme)
 
 		self.fileMenu = self.menubar.addMenu('File')
-		light_style(self.fileMenu)
 		self.fileMenu.addAction(fileOpen)
 		self.fileMenu.addAction(fileSave)
 
@@ -82,6 +79,9 @@ class Example(QWidget):
 		self.search_bar.returnPressed.connect(self.scroll_to)
 		# self.search_bar.returnPressed.connect(lambda arg=0: self.scroll_to(arg))
 
+		self.status_bar = QStatusBar()
+		status(self.status_bar, self.list_1)
+
 		grid = QGridLayout()
 		grid.setSpacing(10)
 		grid.addWidget(self.menubar, 0, 0)
@@ -89,18 +89,42 @@ class Example(QWidget):
 		grid.addWidget(self.list_2, 1, 1)
 		grid.addWidget(self.list_3, 1, 2)
 		grid.addWidget(self.search_bar, 0, 1)
+		grid.addWidget(self.status_bar)
 
 		self.setLayout(grid)      
-		self.setGeometry(300, 300, 350, 300)
+		self.setGeometry(300, 300, 600, 300) 
 		self.setWindowTitle('Vocabulary')    
 		self.show()
+
+
+	def eventFilter(self, source, event):
+
+	    if (event.type() == QEvent.ContextMenu and source is self.list_1):
+	        menu = QMenu()
+	        menu.addAction("Delete row")
+	        if menu.exec_(event.globalPos()):
+	            item = source.itemAt(event.pos())
+	            try:
+	                model = self.list_1.indexFromItem(item) 
+	                row = model.row()
+
+	                self.list_1.takeItem(row)
+	                self.list_2.takeItem(row)
+	                self.list_3.takeItem(row)
+
+	                status(self.status_bar, self.list_1, f'Deleted row number: {row}.')
+
+	            except:
+	                print("error")
+
+	        return True
+	    return super(Example, self).eventFilter(source, event)
 
 
 	def pressed(self): 
 		"""Toggles showing the note column and stretches the window for clearer reading of it"""
 
 		self.list_3.setHidden(not self.list_3.isHidden())
-		self.setGeometry(300, 300, 600, 300) 
  	
 
 	def theme(self):
@@ -110,35 +134,41 @@ class Example(QWidget):
 		# dark theme
 		if  self.toggle_theme.isChecked() == True:
 			palette.setColor(QPalette.Window, QColor(0, 0, 0))
-			extra_dark_bg = "background-color: rgb(0, 0, 0); color: rgb(255, 255, 255);"
+			dark = "background-color: rgb(0, 0, 0); color: rgb(255, 255, 255);"
 
-			self.menubar.setStyleSheet(extra_dark_bg) 
-			self.addFields.setStyleSheet(extra_dark_bg)
-			self.optionMenu.setStyleSheet(extra_dark_bg)
-			self.fileMenu.setStyleSheet(extra_dark_bg)
+			self.menubar.setStyleSheet(dark) 
+			self.addFields.setStyleSheet(dark)
+			self.optionMenu.setStyleSheet(dark)
+			self.fileMenu.setStyleSheet(dark)
 			self.search_bar.setStyleSheet("background-color: rgb(0, 0, 0); color: rgb(255, 255, 255)") # border: 0px; for transparency
 
-			total_items(all_lists, dark_theme=True)
+			style_items(all_lists, dark_theme=True)
 		
 		# light theme
 		elif  self.toggle_theme.isChecked() == False:
 			palette.setColor(QPalette.Window, QColor(255, 255, 255))
+			light = "background-color: rgb(255, 255, 255); color: rgb(0, 0, 0)"
 
-			self.menubar.setStyleSheet("background-color: rgb(255, 255, 255);") 
-			self.search_bar.setStyleSheet("background-color: rgb(255, 255, 255); color: rgb(0, 0, 0)")
+			self.menubar.setStyleSheet(light) 
+			self.addFields.setStyleSheet(light)
+			self.optionMenu.setStyleSheet(light)
+			self.fileMenu.setStyleSheet(light)
+			self.search_bar.setStyleSheet(light)
 
-			total_items(all_lists, dark_theme=False)
+			style_items(all_lists, dark_theme=False)
 
 		self.setPalette(palette)
 
 		self.theme_bool = self.toggle_theme.isChecked() # used in the save func
- 
+
+
 	def scroll_to(self):
 		"""Takes input from the search bar and matches with an item, gets index and scrolls to it, more reusults being qued with the num class var""" 
 
 		query = self.search_bar.text()
 		search = self.list_1.findItems(query, Qt.MatchContains) 
-		
+		status(self.status_bar, self.list_1, f'Found {len(search)} results.')
+
 		self.num+=1
 		for i in search:
 
@@ -172,9 +202,10 @@ class Example(QWidget):
 
 		item =  self.list_1.item(self.list_1.count()-1) # use itemChanged to jump to the next column and edit
 		self.list_1.editItem(item)
+		status(self.status_bar, self.list_1)
 
 	def clear(self):
-		"""Clears all item slections for aesthetical purposes"""
+		"""Clears all item slections for aesthetical purposes, but only"""
 
 		self.list_1.clearSelection()
 		self.list_2.clearSelection()
@@ -200,6 +231,7 @@ class Example(QWidget):
 			total_dicts.append(dictionary)
 			
 		writer(total_dicts)
+		status(self.status_bar, self.list_1, ('Saved current changes.'))
 		
 		try:
 			j_template(self.theme_bool)
