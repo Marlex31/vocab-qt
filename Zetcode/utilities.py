@@ -4,6 +4,7 @@ from PyQt5.QtGui import QFont, QColor #, QIcon
 import csv
 import json
 import operator
+from os import getcwd
 
 
 def set_font(text):  
@@ -23,11 +24,11 @@ def set_font(text):
 	return item
 
 
-def lister(target, index, mode=0):
+def lister(file, target, index, mode=0):
 	"""Adds items to specified column"""
 
 	if mode == 0:
-		for name in reader('french.csv', index=index): # get path through the dialog
+		for name in reader(file, index=index): # get path through the dialog
 			target.addItem(set_font(name)) 
 
 	elif mode == 1:
@@ -44,11 +45,11 @@ def reader(filename, index): # add try and except for generating a template with
 			yield line[index]
 
 
-def writer(data):
+def writer(file, data):
 	"""Writes the contents of the lists inside csv files"""
 
 	fieldnames = ["word_1","word_2","notes","date_added"]
-	with open('french.csv', 'w', encoding='utf8', newline='') as w:
+	with open(file, 'w', encoding='utf8', newline='') as w:
 		w_write = csv.DictWriter(w, delimiter=',', fieldnames=fieldnames)
 		w_write.writeheader()
 		
@@ -82,11 +83,15 @@ def status(bar, list_widget, message=''):
 
 	bar.showMessage(f"Total items: {list_widget.count()}. {message}")
 
+def split_name(string):
+       """Splits the filename from the"""
+       return string.split('/')[-1]
+
 ############################################################################################################################################################################
  
 def test_reader(): 
 
-	with open('french.csv', 'r', encoding="utf8") as f:
+	with open(file, 'r', encoding="utf8") as f:
 		f_read = csv.reader(f)
 		next(f_read)
 
@@ -95,29 +100,55 @@ def test_reader():
 
 # test_reader()
 
-def j_template(theme=False):
+def json_template(theme=False, files=[f"{getcwd()}\\vocabulary.csv", None, None]):
 	"""Creates a json config file"""
 
 	try:
 		with open('settings.json', 'r') as r:
-			settings = json.load(r)
 
-			if settings['first_launch'] == True:
-				settings.update({'first_launch':False})
+			settings = json.load(r)
+			for i in range(0, 3): 
+				if files[0] == settings['recent_files'][0]:
+					files = settings['recent_files']
+					break
+
+				elif settings['recent_files'][i] not in files and i <= 1:
+					files[i+1] = settings['recent_files'][i]
+
+				elif i == 2:
+					break
 
 			settings.update({'dark_theme':theme})
+			settings.update({'recent_files':files})
 
-
-	except: 
-		settings = {'first_launch':True, 'dark_theme':theme, 'recent_files':[None, None, None]}
+	except:
+		settings = {'dark_theme':theme, 'recent_files':files}
 
 
 	with open('settings.json', 'w') as w:
 		json.dump(settings, w)
 
-# j_template()
+# json_template()
 
-def j_theme():
+def json_files():
+
+	try: 
+		with open('settings.json', 'r', encoding='utf8') as f:
+			settings = json.load(f)
+			
+			if settings['recent_files'][0] != None:
+				return settings['recent_files']
+
+	except:
+		filename = f'{getcwd()}\\vocabulary.csv'
+		with open(filename, 'w') as w:
+			writer(file=filename, data=[{'word_1':'lorem', 'word_2':'ipsum', 'notes':'dolor'}])
+			return filename
+
+# print(json_files())
+
+
+def json_theme():
 	"""Returns the theme settings saved in the json config file, used on start-up of the program"""
 
 	try:

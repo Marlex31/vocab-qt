@@ -1,15 +1,23 @@
 import sys
 from PyQt5.QtWidgets import QWidget, QListWidget, QGridLayout, QApplication, QMenuBar, QAction, qApp, QLineEdit, QAbstractItemView, QStyle, QFileDialog, QMenu, QStatusBar
-from PyQt5.QtCore import Qt, QEvent
+from PyQt5.QtCore import Qt, QEvent, QUrl
 from PyQt5.QtGui import QPalette, QColor
 
 from utilities import *
+from os import getcwd
 
 
 class Example(QWidget):
 	
 	def __init__(self):
 		super().__init__() 
+
+		self.filenames = json_files()
+
+		if type(self.filenames) is list:
+			self.curr_file = self.filenames[0]
+		else:
+			self.curr_file = self.filenames
 
 		self.initUI()
 
@@ -19,17 +27,17 @@ class Example(QWidget):
 		self.num = -1 # index for search bar query
 
 		self.list_1 = QListWidget()
-		lister(self.list_1, 0)
+		lister(file=self.curr_file ,target=self.list_1, index=0)
 		self.list_1.clicked.connect(self.clear) 
 		self.list_1.installEventFilter(self)
 		# self.list_1.sortItems() # 1 for descending
 
 		self.list_2 = QListWidget()
-		lister(self.list_2, 1)
+		lister(file=self.curr_file ,target=self.list_2, index=1)
 		self.list_2.clicked.connect(self.clear)
 
 		self.list_3 = QListWidget()
-		lister(self.list_3, 2)
+		lister(file=self.curr_file ,target=self.list_3, index=2)
 		self.list_3.clicked.connect(self.clear)
 		self.list_3.setHidden(True)
 
@@ -55,8 +63,29 @@ class Example(QWidget):
 		fileSave.triggered.connect(self.save)
 		fileSave.setShortcut('Ctrl+S')
 
+		fileRecents = QMenu('Recent file', self)
+		
+		try:
+
+		  file_1 = QAction(split_name(self.curr_file), self)
+		  fileRecents.addAction(file_1)
+		  file_1.triggered.connect(self.clickedFileAct)
+
+		  if type(self.filenames) is list:
+		  	
+			  file_2 = QAction(split_name(self.filenames[1]), self)
+			  fileRecents.addAction(file_2)
+			  file_2.triggered.connect(self.clickedFileAct)
+
+			  file_3 = QAction(split_name(self.filenames[2]), self)
+			  fileRecents.addAction(file_3)
+			  file_3.triggered.connect(self.clickedFileAct)
+		
+		except:
+		  pass
+
 		self.toggle_theme = QAction('Toggle theme', self, checkable=True)
-		self.toggle_theme.setChecked(j_theme())
+		self.toggle_theme.setChecked(json_theme())
 		self.toggle_theme.triggered.connect(self.theme)
 		self.toggle_theme.setShortcut('Ctrl+T')
 
@@ -70,6 +99,7 @@ class Example(QWidget):
 		self.fileMenu = self.menubar.addMenu('File')
 		self.fileMenu.addAction(fileOpen)
 		self.fileMenu.addAction(fileSave)
+		self.fileMenu.addMenu(fileRecents)
 
 
 		self.search_bar = QLineEdit()
@@ -93,39 +123,54 @@ class Example(QWidget):
 
 		self.setLayout(grid)      
 		self.setGeometry(300, 300, 600, 300) 
-		self.setWindowTitle('Vocabulary')    
+		self.setWindowTitle(f'{split_name(self.curr_file)}')
 		self.show()
+
+
+	def clickedFileAct(self):
+
+		file = self.sender().text()
+		self.curr_file = file
+		self.setWindowTitle(f'{split_name(self.curr_file)}')
+
+		self.list_1.clear()
+		self.list_2.clear()
+		self.list_3.clear()
+
+		lister(file=self.curr_file ,target=self.list_1, index=0)
+		lister(file=self.curr_file ,target=self.list_2, index=1)
+		lister(file=self.curr_file ,target=self.list_3, index=2)
 
 
 	def eventFilter(self, source, event):
 
-	    if (event.type() == QEvent.ContextMenu and source is self.list_1):
-	        menu = QMenu()
-	        menu.addAction("Delete row")
-	        if menu.exec_(event.globalPos()):
-	            item = source.itemAt(event.pos())
-	            try:
-	                model = self.list_1.indexFromItem(item) 
-	                row = model.row()
+		if (event.type() == QEvent.ContextMenu and source is self.list_1):
+			menu = QMenu()
+			menu.addAction("Delete row")
+			if menu.exec_(event.globalPos()):
+				item = source.itemAt(event.pos())
+				try:
+					model = self.list_1.indexFromItem(item) 
+					row = model.row()
 
-	                self.list_1.takeItem(row)
-	                self.list_2.takeItem(row)
-	                self.list_3.takeItem(row)
+					self.list_1.takeItem(row)
+					self.list_2.takeItem(row)
+					self.list_3.takeItem(row)
 
-	                status(self.status_bar, self.list_1, f'Deleted row number: {row}.')
+					status(self.status_bar, self.list_1, f'Deleted row number: {row}.')
 
-	            except:
-	                print("error")
+				except:
+					print("Error")
 
-	        return True
-	    return super(Example, self).eventFilter(source, event)
+			return True
+		return super(Example, self).eventFilter(source, event)
 
 
 	def pressed(self): 
 		"""Toggles showing the note column and stretches the window for clearer reading of it"""
 
 		self.list_3.setHidden(not self.list_3.isHidden())
- 	
+	
 
 	def theme(self):
 		palette = QPalette()
@@ -133,6 +178,7 @@ class Example(QWidget):
 
 		# dark theme
 		if  self.toggle_theme.isChecked() == True:
+
 			palette.setColor(QPalette.Window, QColor(0, 0, 0))
 			dark = "background-color: rgb(0, 0, 0); color: rgb(255, 255, 255);"
 
@@ -141,11 +187,13 @@ class Example(QWidget):
 			self.optionMenu.setStyleSheet(dark)
 			self.fileMenu.setStyleSheet(dark)
 			self.search_bar.setStyleSheet("background-color: rgb(0, 0, 0); color: rgb(255, 255, 255)") # border: 0px; for transparency
+			self.status_bar.setStyleSheet(dark)
 
 			style_items(all_lists, dark_theme=True)
 		
 		# light theme
 		elif  self.toggle_theme.isChecked() == False:
+
 			palette.setColor(QPalette.Window, QColor(255, 255, 255))
 			light = "background-color: rgb(255, 255, 255); color: rgb(0, 0, 0)"
 
@@ -154,6 +202,7 @@ class Example(QWidget):
 			self.optionMenu.setStyleSheet(light)
 			self.fileMenu.setStyleSheet(light)
 			self.search_bar.setStyleSheet(light)
+			self.status_bar.setStyleSheet(light)
 
 			style_items(all_lists, dark_theme=False)
 
@@ -192,13 +241,13 @@ class Example(QWidget):
 
 		for x in range(3):	
 			if x == 0:
-				lister(self.list_1, x, 1)
+				lister(file=self.curr_file ,target=self.list_1, index=x, mode=1)
 
 			elif x == 1:
-				lister(self.list_2, x, 1)
+				lister(file=self.curr_file ,target=self.list_2, index=x, mode=1)
 
 			elif x == 2:
-				lister(self.list_3, x, 1)
+				lister(file=self.curr_file ,target=self.list_3, index=x, mode=1)
 
 		item =  self.list_1.item(self.list_1.count()-1) # use itemChanged to jump to the next column and edit
 		self.list_1.editItem(item)
@@ -215,8 +264,20 @@ class Example(QWidget):
 	def fileDialog(self):
 
 		fname = QFileDialog()
-		path = fname.getOpenFileName(self, 'Open file', '/french.csv', filter='txt (*.txt);;All files (*.*)') # could use this for recents, also change the second parameter to the last opened file
-		print(path[0])
+		path = fname.getOpenFileName(self, 'Open file', getcwd(), filter='csv (*.csv);') 
+		if path[0] == '': # failsafe for canceling the dialog
+			return self.curr_file
+
+		self.curr_file = path[0]
+		self.setWindowTitle(f'{split_name(self.curr_file)}')
+
+		self.list_1.clear()
+		self.list_2.clear()
+		self.list_3.clear()
+
+		lister(file=self.curr_file ,target=self.list_1, index=0)
+		lister(file=self.curr_file ,target=self.list_2, index=1)
+		lister(file=self.curr_file ,target=self.list_3, index=2)
 
 
 	def save(self): # use itemSelectionChanged to trigger not saved dialog
@@ -229,14 +290,14 @@ class Example(QWidget):
 		for (a, b, c) in zip(list1_items, list2_items, list3_items): # each letter is a column
 			dictionary = {'word_1':a, 'word_2':b, 'notes':c}
 			total_dicts.append(dictionary)
-			
-		writer(total_dicts)
+		
+		writer(file=self.curr_file, data=total_dicts)
 		status(self.status_bar, self.list_1, ('Saved current changes.'))
 		
 		try:
-			j_template(self.theme_bool)
+			json_template(theme=self.theme_bool, files=[self.curr_file, None, None])
 		except:
-			j_template() # bug cannot be avoided, even though used setChecked at the beggining
+			json_template() # bug cannot be avoided, even though used setChecked at the beggining
 
 if __name__ == '__main__':
 	
