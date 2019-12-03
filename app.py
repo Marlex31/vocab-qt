@@ -27,16 +27,16 @@ class Example(QWidget):
 		self.num = -1 # index for search bar query
 
 		self.list_1 = QListWidget()
-		lister(file=self.curr_file ,target=self.list_1, index=0, mode=2)
+		lister(file=self.curr_file ,target=self.list_1, index=0, mode=0) # test mode 2
 		self.list_1.clicked.connect(self.clear) 
 		self.list_1.installEventFilter(self)
 
 		self.list_2 = QListWidget()
-		lister(file=self.curr_file ,target=self.list_2, index=1, mode=2)
+		lister(file=self.curr_file ,target=self.list_2, index=1, mode=0)
 		self.list_2.clicked.connect(self.clear)
 
 		self.list_3 = QListWidget()
-		lister(file=self.curr_file ,target=self.list_3, index=2, mode=2)
+		lister(file=self.curr_file ,target=self.list_3, index=2, mode=0)
 		self.list_3.clicked.connect(self.clear)
 		self.list_3.setHidden(True)
 
