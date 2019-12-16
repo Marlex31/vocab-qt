@@ -28,16 +28,16 @@ class Example(QWidget):
 
 		self.list_1 = QListWidget()
 		lister(file=self.curr_file ,target=self.list_1, index=0, mode=0) # test mode 2
-		self.list_1.clicked.connect(self.clear) 
+		self.list_1.clicked.connect(self.clear_selection) 
 		self.list_1.installEventFilter(self)
 
 		self.list_2 = QListWidget()
 		lister(file=self.curr_file ,target=self.list_2, index=1, mode=0)
-		self.list_2.clicked.connect(self.clear)
+		self.list_2.clicked.connect(self.clear_selection)
 
 		self.list_3 = QListWidget()
 		lister(file=self.curr_file ,target=self.list_3, index=2, mode=0)
-		self.list_3.clicked.connect(self.clear)
+		self.list_3.clicked.connect(self.clear_selection)
 		self.list_3.setHidden(True)
 
 
@@ -65,11 +65,24 @@ class Example(QWidget):
 
 		self.fileRecents = QMenu('Recent file', self)
 		self.refreshRecents()
+
 		
 		self.toggle_theme = QAction('Toggle theme', self, checkable=True)
 		self.toggle_theme.setChecked(json_theme())
 		self.toggle_theme.triggered.connect(self.theme)
 		self.toggle_theme.setShortcut('Ctrl+T')
+
+		self.col_index = QMenu('Sorting column index', self)
+		self.col_index.addAction(QAction(str(0), self))
+		self.col_index.addAction(QAction(str(1), self))
+		self.col_index.addAction(QAction(str(2), self))
+		self.col_index.triggered.connect(self.col_choice)
+
+		self.sort = QAction('Sort entries', self, checkable=True)
+		self.curr_col = 0
+		self.sort.triggered.connect(self.refresh_list)
+		self.sort.setShortcut('Ctrl+R')
+
 
 		self.addFields = self.menubar.addMenu('Add')
 		self.addFields.addAction(addAct)
@@ -77,6 +90,8 @@ class Example(QWidget):
 		self.optionMenu = self.menubar.addMenu('Options')
 		self.optionMenu.addAction(showAct)
 		self.optionMenu.addAction(self.toggle_theme)
+		self.optionMenu.addMenu(self.col_index)
+		self.optionMenu.addAction(self.sort)
 
 		self.fileMenu = self.menubar.addMenu('File')
 		self.fileMenu.addAction(fileOpen)
@@ -89,7 +104,6 @@ class Example(QWidget):
 		self.search_bar.setClearButtonEnabled(True)
 		self.search_bar.setMaxLength(10)
 		self.search_bar.returnPressed.connect(self.scroll_to)
-		# self.search_bar.returnPressed.connect(lambda arg=0: self.scroll_to(arg))
 
 		self.status_bar = QStatusBar()
 		status(self.status_bar, self.list_1)
@@ -109,6 +123,28 @@ class Example(QWidget):
 		self.setWindowTitle(f'{split_name(self.curr_file)}')
 		self.show()
 
+
+	def col_choice(self, action):
+
+		self.curr_col = int(action.text())
+
+
+	def refresh_list(self):
+		"""Refreshes the contents of the lists, when sorting is used"""
+
+		self.list_1.clear()
+		self.list_2.clear()
+		self.list_3.clear()
+
+		if self.sort.isChecked() == True:
+			mode = 2
+		else:
+			mode = 0
+
+		lister(file=self.curr_file ,target=self.list_1, index=0, mode=mode, column=self.curr_col)
+		lister(file=self.curr_file ,target=self.list_2, index=1, mode=mode, column=self.curr_col)
+		lister(file=self.curr_file ,target=self.list_3, index=2, mode=mode, column=self.curr_col)
+		
 
 	def refreshRecents(self):
 
@@ -132,6 +168,7 @@ class Example(QWidget):
 		
 		except:
 		  pass
+
 
 	def clickedFileAct(self):
 
@@ -221,7 +258,8 @@ class Example(QWidget):
 
 	def scroll_to(self):
 		"""Takes input from the search bar and matches with an item, 
-		gets index and scrolls to it, more reusults being qued with the num class var""" 
+		gets index and scrolls to it, more reusults being qued with the num class var
+		""" 
 
 		query = self.search_bar.text()
 		search = self.list_1.findItems(query, Qt.MatchContains) 
@@ -262,7 +300,7 @@ class Example(QWidget):
 		self.list_1.editItem(item)
 		status(self.status_bar, self.list_1)
 
-	def clear(self):
+	def clear_selection(self):
 		"""Clears all item slections for aesthetical purposes, but only single clicks"""
 
 		self.list_1.clearSelection()
@@ -273,7 +311,7 @@ class Example(QWidget):
 	def fileDialog(self):
 
 		fname = QFileDialog()
-		path = fname.getOpenFileName(self, 'Open file', getcwd(), filter='csv (*.csv);') 
+		path = fname.getOpenFileName(self, 'Open file', getcwd(), filter='csv (*.csv);;') 
 		if path[0] == '': # failsafe for canceling the dialog
 			return self.curr_file
 

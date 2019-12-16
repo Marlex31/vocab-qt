@@ -26,7 +26,7 @@ def set_font(text):
 	return item
 
 
-def lister(file, target, index, mode=0):
+def lister(file, target, index, mode=0, column=0):
 	"""Adds items to specified column"""
 
 	if mode == 0:
@@ -37,7 +37,7 @@ def lister(file, target, index, mode=0):
 		target.addItem(set_font(''))
 
 	elif mode == 2:
-		for line in sorting(file)[index]:
+		for line in sorting(file, column)[index]:
 			target.addItem(set_font(line))
 
 
@@ -68,6 +68,7 @@ def items_text(QList):
 	all_items =  [QList.item(i).text() for i in range(QList.count())]
 	return all_items
 
+
 def style_items(QLists, dark_theme=False):
 	"""Stylizes the QListWidget items for light and dark themes"""
 
@@ -88,6 +89,7 @@ def status(bar, list_widget, message=''):
 	"""Sets text displayed by status bar"""
 
 	bar.showMessage(f"Total items: {list_widget.count()}. {message}")
+
 
 def split_name(string):
        """Splits the filename from the path"""
@@ -129,6 +131,7 @@ def json_template(theme=False, files=[f"{getcwd()}\\vocabulary.csv", None, None]
 
 # json_template()
 
+
 def json_files():
 	"""Returns recently opened files and creates a default csv if none found"""
 	try: 
@@ -160,32 +163,32 @@ def json_theme():
 	except:
 		return False
 
-############################################################################################################################################################################
 
-def sorting(file): 
-	"""Sorts alphabetically the items in the lists by the first one"""
-
+def sorting(file, column): 
+	"""Sorts alphabetically the items in a column"""
+	
 	with open(file, 'r', encoding="utf8") as f: 
 		f_read = csv.reader(f)
 
 		next(f_read)
 
-		sortedList = sorted(f_read, key=operator.itemgetter(0), reverse=False) # alphabetical sorting by a specified key
-		unsortedList=[]
+		new_list = sorted(f_read, key=operator.itemgetter(column), reverse=False) # alphabetical sorting by a specified column index
+		unsorted_list=[]
 
-		unsortedList.extend(a for a,b,c in sortedList)
-		unsortedList.extend(b for a,b,c in sortedList)
-		unsortedList.extend(c for a,b,c in sortedList)
+		unsorted_list.extend(a for a,b,c in new_list)
+		unsorted_list.extend(b for a,b,c in new_list)
+		unsorted_list.extend(c for a,b,c in new_list)
 
 		start = 0
-		end = len(sortedList)
+		end = len(new_list)
+		sorted_list = [[], [], []]
 
-		for num in range(end):
-			sortedList[num] = [x for x in unsortedList[start:end]]
+		for num in range(3):
+			sorted_list[num] = [x for x in unsorted_list[start:end]]
 
 			start = end
 			end = end*2
 
-		return sortedList
+		return sorted_list
 
-# print(sorting('comma_file.csv'))
+# print(sorting('vocabulary.csv', 0))
