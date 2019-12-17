@@ -1,10 +1,13 @@
-import sys
-from PyQt5.QtWidgets import QWidget, QListWidget, QGridLayout, QApplication, QMenuBar, QAction, qApp, QLineEdit, QAbstractItemView, QStyle, QFileDialog, QMenu, QStatusBar
+
+from PyQt5.QtWidgets import (QWidget, QListWidget, QGridLayout, QApplication, QMenuBar, QAction, qApp, 
+QLineEdit, QAbstractItemView, QStyle, QFileDialog, QMenu, QStatusBar, QMessageBox)
 from PyQt5.QtCore import Qt, QEvent, QUrl
 from PyQt5.QtGui import QPalette, QColor
 
-from utilities import *
+import sys
 from os import getcwd
+
+from utilities import *
 
 
 class Example(QWidget):
@@ -25,9 +28,10 @@ class Example(QWidget):
 	def initUI(self):
 
 		self.num = -1 # index for search bar query
+		self.show_save = False # bool for showing unsaved changes dialog
 
 		self.list_1 = QListWidget()
-		lister(file=self.curr_file ,target=self.list_1, index=0, mode=0) # test mode 2
+		lister(file=self.curr_file ,target=self.list_1, index=0, mode=0) 
 		self.list_1.clicked.connect(self.clear_selection) 
 		self.list_1.installEventFilter(self)
 
@@ -124,6 +128,22 @@ class Example(QWidget):
 		self.show()
 
 
+	def closeEvent(self, event):
+		
+		if self.show_save == True:
+
+			reply = QMessageBox.question(self, 'Message',
+				"You may have unsaved changes, are you sure you want to quit?", QMessageBox.Yes | 
+				QMessageBox.No, QMessageBox.No)
+
+			if reply == QMessageBox.Yes:
+				event.accept()
+			else:
+				event.ignore()       
+
+		else:
+			pass
+
 	def col_choice(self, action):
 
 		self.curr_col = int(action.text())
@@ -195,6 +215,8 @@ class Example(QWidget):
 				try:
 					model = self.list_1.indexFromItem(item) 
 					row = model.row()
+
+					self.show_save = True
 
 					self.list_1.takeItem(row)
 					self.list_2.takeItem(row)
@@ -286,6 +308,8 @@ class Example(QWidget):
 
 	def add_item(self): # add auto-jumping to the next item when finished editing current
 
+		self.show_save = True
+
 		for x in range(3):  
 			if x == 0:
 				lister(file=self.curr_file ,target=self.list_1, index=x, mode=1)
@@ -327,7 +351,9 @@ class Example(QWidget):
 		lister(file=self.curr_file ,target=self.list_3, index=2)
 
 
-	def save(self): # use itemSelectionChanged to trigger not saved dialog
+	def save(self): 
+
+		self.show_save = False
 
 		list1_items = items_text(self.list_1)
 		list2_items = items_text(self.list_2)

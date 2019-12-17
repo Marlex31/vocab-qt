@@ -1,19 +1,36 @@
-from itertools import chain
+import sys
+from PyQt5.QtWidgets import QWidget, QMessageBox, QApplication
 
-unsortedList = [['a', '2', ''], ['a', '5', ''], ['b', '4', ''], ['y', '3', ''], ['z', '1', ''], ['z', '6', '']]
 
-sortedList=[]
-for (a,b,c) in unsortedList:
-    sortedList.append(a)
+class Example(QWidget):
+    
+    def __init__(self):
+        super().__init__()
+        
+        self.initUI()
+        
+        
+    def initUI(self):               
+        
+        self.setGeometry(300, 300, 250, 150)        
+        self.setWindowTitle('Message box')    
+        self.show()
+        
+        
+    def closeEvent(self, event):
+        
+        reply = QMessageBox.question(self, 'Message',
+            "Are you sure to quit?", QMessageBox.Yes | 
+            QMessageBox.No, QMessageBox.No)
 
-for (a,b,c) in unsortedList:
-    sortedList.append(b)
-
-for (a,b,c) in unsortedList:
-    sortedList.append(c)
-
-print(sortedList)
-
-result = [['a', 'a', 'b', 'y', 'z', 'z'], ['2', '5', '4', '3', '1', '6'], ['', '', '', '', '', ''], [], [], []]
-print()
-print(result)
+        if reply == QMessageBox.Yes:
+            event.accept()
+        else:
+            event.ignore()        
+        
+        
+if __name__ == '__main__':
+    
+    app = QApplication(sys.argv)
+    ex = Example()
+    sys.exit(app.exec_())
