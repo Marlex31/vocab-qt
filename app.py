@@ -5,7 +5,7 @@ from PyQt5.QtCore import Qt, QEvent, QUrl
 from PyQt5.QtGui import QPalette, QColor
 
 import sys
-from os import getcwd
+from os import getcwd, remove
 
 from utilities import *
 
@@ -29,20 +29,26 @@ class Example(QWidget):
 
 		self.num = -1 # index for search bar query
 		self.show_save = False # bool for showing unsaved changes dialog
+		self.temp_file = ".temp.csv"
 
 		self.list_1 = QListWidget()
-		lister(file=self.curr_file ,target=self.list_1, index=0, mode=0) 
-		self.list_1.clicked.connect(self.clear_selection) 
+		lister(file=self.curr_file, target=self.list_1, index=0, mode=0) 
+		self.list_1.clicked.connect(self.clear_selection)
 		self.list_1.installEventFilter(self)
 
+		self.item_changed_failsafe = self.list_1.count()
+		self.list_1.itemChanged.connect(self.edit_next_item)
+
 		self.list_2 = QListWidget()
-		lister(file=self.curr_file ,target=self.list_2, index=1, mode=0)
+		lister(file=self.curr_file, target=self.list_2, index=1, mode=0)
 		self.list_2.clicked.connect(self.clear_selection)
 
 		self.list_3 = QListWidget()
-		lister(file=self.curr_file ,target=self.list_3, index=2, mode=0)
+		lister(file=self.curr_file, target=self.list_3, index=2, mode=0)
 		self.list_3.clicked.connect(self.clear_selection)
 		self.list_3.setHidden(True)
+
+		self.all_lists = [self.list_1, self.list_2, self.list_3]
 
 
 		self.menubar = QMenuBar()
@@ -76,14 +82,21 @@ class Example(QWidget):
 		self.toggle_theme.triggered.connect(self.theme)
 		self.toggle_theme.setShortcut('Ctrl+T')
 
-		self.col_index = QMenu('Sorting column index', self)
-		self.col_index.addAction(QAction(str(0), self))
-		self.col_index.addAction(QAction(str(1), self))
-		self.col_index.addAction(QAction(str(2), self))
-		self.col_index.triggered.connect(self.col_choice)
+		self.col_sort_index = QMenu('Sorting column index', self)
+		self.col_sort_index.addAction(QAction(str(0), self))
+		self.col_sort_index.addAction(QAction(str(1), self))
+		self.col_sort_index.addAction(QAction(str(2), self))
+		self.col_sort_index.triggered.connect(self.sort_col_choice)
+
+		self.col_search_index = QMenu('Searching column index', self)
+		self.col_search_index.addAction(QAction(str(0), self))
+		self.col_search_index.addAction(QAction(str(1), self))
+		self.col_search_index.addAction(QAction(str(2), self))
+		self.col_search_index.triggered.connect(self.search_col_choice)
 
 		self.sort = QAction('Sort entries', self, checkable=True)
 		self.curr_col = 0
+		self.search_col = 0
 		self.sort.triggered.connect(self.refresh_list)
 		self.sort.setShortcut('Ctrl+R')
 
@@ -94,7 +107,8 @@ class Example(QWidget):
 		self.optionMenu = self.menubar.addMenu('Options')
 		self.optionMenu.addAction(showAct)
 		self.optionMenu.addAction(self.toggle_theme)
-		self.optionMenu.addMenu(self.col_index)
+		self.optionMenu.addMenu(self.col_sort_index)
+		self.optionMenu.addMenu(self.col_search_index)
 		self.optionMenu.addAction(self.sort)
 
 		self.fileMenu = self.menubar.addMenu('File')
@@ -107,10 +121,11 @@ class Example(QWidget):
 		self.search_bar.setPlaceholderText('Search vocab')
 		self.search_bar.setClearButtonEnabled(True)
 		self.search_bar.setMaxLength(10)
-		self.search_bar.returnPressed.connect(self.scroll_to)
+		self.search_bar.returnPressed.connect(self.search_item)
 
 		self.status_bar = QStatusBar()
 		status(self.status_bar, self.list_1)
+
 
 		grid = QGridLayout()
 		grid.setSpacing(10)
@@ -128,8 +143,17 @@ class Example(QWidget):
 		self.show()
 
 
+
+	def edit_next_item(self, event):
+
+		if self.item_changed_failsafe != self.list_1.count():
+
+			item =  self.list_2.item(self.list_2.count()-1) # use itemChanged to jump to the next column and edit
+			self.list_2.editItem(item)
+
+
 	def closeEvent(self, event):
-		
+
 		if self.show_save == True:
 
 			reply = QMessageBox.question(self, 'Message',
@@ -137,6 +161,11 @@ class Example(QWidget):
 				QMessageBox.No, QMessageBox.No)
 
 			if reply == QMessageBox.Yes:
+				try:
+					remove(self.temp_file)
+				except:
+					pass
+
 				event.accept()
 			else:
 				event.ignore()       
@@ -144,13 +173,18 @@ class Example(QWidget):
 		else:
 			pass
 
-	def col_choice(self, action):
 
+	def sort_col_choice(self, action):
 		self.curr_col = int(action.text())
+
+	def search_col_choice(self, action):
+		self.search_col = int(action.text())
 
 
 	def refresh_list(self):
 		"""Refreshes the contents of the lists, when sorting is used"""
+
+		self.save(mode=1) # saves a temp copy, with changes, but irreversable sorting introduced
 
 		self.list_1.clear()
 		self.list_2.clear()
@@ -161,10 +195,15 @@ class Example(QWidget):
 		else:
 			mode = 0
 
-		lister(file=self.curr_file ,target=self.list_1, index=0, mode=mode, column=self.curr_col)
-		lister(file=self.curr_file ,target=self.list_2, index=1, mode=mode, column=self.curr_col)
-		lister(file=self.curr_file ,target=self.list_3, index=2, mode=mode, column=self.curr_col)
+		try:
+			lister(file=self.temp_file, target=self.list_1, index=0, mode=mode, column=self.curr_col)
+			lister(file=self.temp_file, target=self.list_2, index=1, mode=mode, column=self.curr_col)
+			lister(file=self.temp_file, target=self.list_3, index=2, mode=mode, column=self.curr_col)
 		
+		except:
+			lister(file=self.curr_file, target=self.list_1, index=0, mode=mode, column=self.curr_col)
+			lister(file=self.curr_file, target=self.list_2, index=1, mode=mode, column=self.curr_col)
+			lister(file=self.curr_file, target=self.list_3, index=2, mode=mode, column=self.curr_col)
 
 	def refreshRecents(self):
 
@@ -200,12 +239,15 @@ class Example(QWidget):
 		self.list_2.clear()
 		self.list_3.clear()
 
-		lister(file=self.curr_file ,target=self.list_1, index=0)
-		lister(file=self.curr_file ,target=self.list_2, index=1)
-		lister(file=self.curr_file ,target=self.list_3, index=2)
+		lister(file=self.curr_file, target=self.list_1, index=0)
+		lister(file=self.curr_file, target=self.list_2, index=1)
+		lister(file=self.curr_file, target=self.list_3, index=2)
+
+		status(self.status_bar, self.list_1)
 
 
 	def eventFilter(self, source, event):
+		"""Item (row) deletion"""
 
 		if (event.type() == QEvent.ContextMenu and source is self.list_1):
 			menu = QMenu()
@@ -222,7 +264,7 @@ class Example(QWidget):
 					self.list_2.takeItem(row)
 					self.list_3.takeItem(row)
 
-					status(self.status_bar, self.list_1, f'Deleted row number: {row}.')
+					status(self.status_bar, self.list_1, f'Deleted row number: {row+1}.')
 
 				except:
 					pass
@@ -241,7 +283,6 @@ class Example(QWidget):
 		"""Sets the theme for the window and its widgets"""
 
 		palette = QPalette()
-		all_lists = [self.list_1, self.list_2, self.list_3]
 
 		# dark theme
 		if  self.toggle_theme.isChecked() == True:
@@ -256,7 +297,7 @@ class Example(QWidget):
 			self.search_bar.setStyleSheet("background-color: rgb(0, 0, 0); color: rgb(255, 255, 255)") # border: 0px; for transparency
 			self.status_bar.setStyleSheet(dark)
 
-			style_items(all_lists, dark_theme=True)
+			style_items(self.all_lists, dark_theme=True)
 		
 		# light theme
 		elif  self.toggle_theme.isChecked() == False:
@@ -271,58 +312,75 @@ class Example(QWidget):
 			self.search_bar.setStyleSheet(light)
 			self.status_bar.setStyleSheet(light)
 
-			style_items(all_lists, dark_theme=False)
+			style_items(self.all_lists, dark_theme=False)
 
 		self.setPalette(palette)
 
 		self.theme_bool = self.toggle_theme.isChecked() # used in the save func
 
 
-	def scroll_to(self):
+	def search_item(self):
 		"""Takes input from the search bar and matches with an item, 
 		gets index and scrolls to it, more reusults being qued with the num class var
 		""" 
 
 		query = self.search_bar.text()
-		search = self.list_1.findItems(query, Qt.MatchContains) 
+		search = self.all_lists[self.search_col].findItems(query, Qt.MatchContains)
 		status(self.status_bar, self.list_1, f'Found {len(search)} results.')
+		self.clear_selection()
+
+
+		# testing search in all column
+
+		# all_search = []
+		# all_results = []
+
+		# for e in self.all_lists:
+		# 	e.findItems(query, Qt.MatchContains)
+		# 	all_search.append(e)
+
+		# for r in all_results:
+		# 	mod_index = r.indexFromItem(all_items[0])
+		# print(mod_index)
+
 
 		self.num+=1
 		for i in search:
 
 			try:
-				model_index = self.list_1.indexFromItem(search[self.num]) 
+				model_index = self.all_lists[self.search_col].indexFromItem(search[self.num])
 
 			except:
 				self.num = 0
-				model_index = self.list_1.indexFromItem(search[self.num]) 
+				model_index = self.all_lists[self.search_col].indexFromItem(search[self.num])
 
 			item_index = model_index.row()
 
-			self.list_1.item(item_index).setSelected(True)
-			self.list_1.scrollToItem(self.list_1.item(item_index), QAbstractItemView.PositionAtCenter)
+			self.all_lists[self.search_col].item(item_index).setSelected(True)
 
+			self.list_1.scrollToItem(self.list_1.item(item_index), QAbstractItemView.PositionAtCenter)
 			self.list_2.scrollToItem(self.list_2.item(item_index), QAbstractItemView.PositionAtCenter)
 			self.list_3.scrollToItem(self.list_3.item(item_index), QAbstractItemView.PositionAtCenter)
 
 
-	def add_item(self): # add auto-jumping to the next item when finished editing current
+	def add_item(self):
 
 		self.show_save = True
 
 		for x in range(3):  
 			if x == 0:
-				lister(file=self.curr_file ,target=self.list_1, index=x, mode=1)
+				lister(file=self.curr_file, target=self.list_1, index=x, mode=1)
 
 			elif x == 1:
-				lister(file=self.curr_file ,target=self.list_2, index=x, mode=1)
+				lister(file=self.curr_file,target=self.list_2, index=x, mode=1)
 
 			elif x == 2:
-				lister(file=self.curr_file ,target=self.list_3, index=x, mode=1)
+				lister(file=self.curr_file, target=self.list_3, index=x, mode=1)
 
 		item =  self.list_1.item(self.list_1.count()-1) # use itemChanged to jump to the next column and edit
 		self.list_1.editItem(item)
 		status(self.status_bar, self.list_1)
+
 
 	def clear_selection(self):
 		"""Clears all item slections for aesthetical purposes, but only single clicks"""
@@ -350,8 +408,10 @@ class Example(QWidget):
 		lister(file=self.curr_file ,target=self.list_2, index=1)
 		lister(file=self.curr_file ,target=self.list_3, index=2)
 
+		status(self.status_bar, self.list_1)
 
-	def save(self): 
+
+	def save(self, mode=0): 
 
 		self.show_save = False
 
@@ -364,13 +424,23 @@ class Example(QWidget):
 			dictionary = {'word_1':a, 'word_2':b, 'notes':c}
 			total_dicts.append(dictionary)
 		
-		writer(file=self.curr_file, data=total_dicts)
-		status(self.status_bar, self.list_1, ('Saved current changes.'))
-		
-		try:
-			json_template(theme=self.theme_bool, files=[self.curr_file, None, None])
-		except:
-			json_template() # bug cannot be avoided, even though used setChecked at the beggining
+		if mode == 0:
+
+			writer(file=self.curr_file, data=total_dicts)
+			status(self.status_bar, self.list_1, ('Saved current changes.'))
+			
+			try:
+				json_template(theme=self.theme_bool, files=[self.curr_file, None, None])
+
+			except:
+				json_template() # bug cannot be avoided, even though used setChecked at the beggining
+
+
+		elif mode == 1:
+
+			self.show_save = True
+			writer(file=self.temp_file, data=total_dicts)
+
 
 		# avoids stacking and refreshes recent file actions
 		actions = self.fileRecents.actions()
