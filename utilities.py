@@ -63,12 +63,6 @@ def writer(file, data):
 			w_write.writerow(item)
 
 
-def items_text(QList):
-
-	all_items =  [QList.item(i).text() for i in range(QList.count())]
-	return all_items
-
-
 def style_items(QLists, dark_theme=False):
 	"""Stylizes the QListWidget items for light and dark themes"""
 
@@ -84,6 +78,18 @@ def style_items(QLists, dark_theme=False):
 				item.setForeground(QColor(240, 240, 240))
 				QList.setStyleSheet("background-color: rgb(0, 0, 0);")
 
+
+def items_text(QList):
+	"""Storing list text"""
+
+	text =  [QList.item(i).text() for i in range(QList.count())]
+	return text
+	
+def clear_lists(QListWidgets):
+	"""Clears QListWidgets"""
+
+	for i in QListWidgets:
+		i.clear()
 
 def status(bar, list_widget, message=''):
 	"""Sets text displayed by status bar"""

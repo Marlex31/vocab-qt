@@ -30,14 +30,17 @@ class Example(QWidget):
 		self.num = -1 # index for search bar query
 		self.show_save = False # bool for showing unsaved changes dialog
 		self.temp_file = ".temp.csv"
+		self.refresh_file = False # failsafe 1 for itemChanged trigger
 
 		self.list_1 = QListWidget()
+
 		lister(file=self.curr_file, target=self.list_1, index=0, mode=0) 
 		self.list_1.clicked.connect(self.clear_selection)
 		self.list_1.installEventFilter(self)
 
-		self.item_changed_failsafe = self.list_1.count()
+		self.list_items = self.list_1.count() # failsafe 2 for itemChanged trigger
 		self.list_1.itemChanged.connect(self.edit_next_item)
+		self.list_1.verticalScrollBar().valueChanged.connect(self.sync_scroll)
 
 		self.list_2 = QListWidget()
 		lister(file=self.curr_file, target=self.list_2, index=1, mode=0)
@@ -46,7 +49,6 @@ class Example(QWidget):
 		self.list_3 = QListWidget()
 		lister(file=self.curr_file, target=self.list_3, index=2, mode=0)
 		self.list_3.clicked.connect(self.clear_selection)
-		self.list_3.setHidden(True)
 
 		self.all_lists = [self.list_1, self.list_2, self.list_3]
 
@@ -54,6 +56,10 @@ class Example(QWidget):
 		self.menubar = QMenuBar()
 		self.menubar.setNativeMenuBar(False)
 
+
+		exit_event = QAction('Exit', self)  
+		exit_event.setShortcut('Ctrl+W')
+		exit_event.triggered.connect(app.quit)
 
 		showAct = QAction('Show extras', self, checkable=True)  
 		showAct.setChecked(False)
@@ -70,11 +76,11 @@ class Example(QWidget):
 
 		fileSave = QAction('Save file', self)
 		fileSave.triggered.connect(self.save)
-		fileSave.triggered.connect(self.refreshRecents)
+		fileSave.triggered.connect(self.refresh_recents)
 		fileSave.setShortcut('Ctrl+S')
 
 		self.fileRecents = QMenu('Recent file', self)
-		self.refreshRecents()
+		self.refresh_recents()
 
 		
 		self.toggle_theme = QAction('Toggle theme', self, checkable=True)
@@ -105,6 +111,7 @@ class Example(QWidget):
 		self.addFields.addAction(addAct)
 
 		self.optionMenu = self.menubar.addMenu('Options')
+		self.optionMenu.addAction(exit_event)
 		self.optionMenu.addAction(showAct)
 		self.optionMenu.addAction(self.toggle_theme)
 		self.optionMenu.addMenu(self.col_sort_index)
@@ -142,17 +149,32 @@ class Example(QWidget):
 		self.setWindowTitle(f'{split_name(self.curr_file)}')
 		self.show()
 
+		self.list_1.scrollToBottom()
+		self.list_2.verticalScrollBar().setHidden(True)
+		self.list_3.verticalScrollBar().setHidden(True)
+		self.list_3.setHidden(True)
+
+
+
+	def sync_scroll(self):
+
+		scroll_location = self.list_1.verticalScrollBar().value()
+
+		self.list_2.verticalScrollBar().setValue(scroll_location)
+		self.list_3.verticalScrollBar().setValue(scroll_location)
 
 
 	def edit_next_item(self, event):
+		"""When an item is added and edited on the first col, starts editing its counterpart on the next col"""
 
-		if self.item_changed_failsafe != self.list_1.count():
+		if self.list_items != self.list_1.count() and self.refresh_file == False:
 
-			item =  self.list_2.item(self.list_2.count()-1) # use itemChanged to jump to the next column and edit
+			item =  self.list_2.item(self.list_2.count()-1)
 			self.list_2.editItem(item)
 
 
 	def closeEvent(self, event):
+		"""Triggered upon program exit, shows a dialog for unsaved changes using a bool"""
 
 		if self.show_save == True:
 
@@ -186,9 +208,7 @@ class Example(QWidget):
 
 		self.save(mode=1) # saves a temp copy, with changes, but irreversable sorting introduced
 
-		self.list_1.clear()
-		self.list_2.clear()
-		self.list_3.clear()
+		clear_lists(self.all_lists)
 
 		if self.sort.isChecked() == True:
 			mode = 2
@@ -205,7 +225,8 @@ class Example(QWidget):
 			lister(file=self.curr_file, target=self.list_2, index=1, mode=mode, column=self.curr_col)
 			lister(file=self.curr_file, target=self.list_3, index=2, mode=mode, column=self.curr_col)
 
-	def refreshRecents(self):
+
+	def refresh_recents(self):
 
 		try:
 
@@ -231,19 +252,25 @@ class Example(QWidget):
 
 	def clickedFileAct(self):
 
+		self.refresh_file = True
+
 		file = self.sender().text()
 		self.curr_file = file
 		self.setWindowTitle(f'{split_name(self.curr_file)}')
 
-		self.list_1.clear()
-		self.list_2.clear()
-		self.list_3.clear()
+		clear_lists(self.all_lists)
 
 		lister(file=self.curr_file, target=self.list_1, index=0)
 		lister(file=self.curr_file, target=self.list_2, index=1)
 		lister(file=self.curr_file, target=self.list_3, index=2)
 
 		status(self.status_bar, self.list_1)
+		self.theme()
+
+		self.list_1.scrollToBottom()
+		self.list_3.setHidden(True)
+
+		self.refresh_file = False
 
 
 	def eventFilter(self, source, event):
@@ -265,6 +292,7 @@ class Example(QWidget):
 					self.list_3.takeItem(row)
 
 					status(self.status_bar, self.list_1, f'Deleted row number: {row+1}.')
+					self.clearSelection()
 
 				except:
 					pass
@@ -332,16 +360,23 @@ class Example(QWidget):
 
 		# testing search in all column
 
-		# all_search = []
-		# all_results = []
+		# search_list =[]
+		# for x in range(3):
+		# 	search_list.append(self.all_lists[x].findItems(query, Qt.MatchContains))
 
-		# for e in self.all_lists:
-		# 	e.findItems(query, Qt.MatchContains)
-		# 	all_search.append(e)
+		# parent_list = []
+		# for x in range(3):
+		# 	for y in range(len(search_list[x])):
+		# 		parent_list.append(self.all_lists[x]) # replace with x
 
-		# for r in all_results:
-		# 	mod_index = r.indexFromItem(all_items[0])
-		# print(mod_index)
+		# import itertools
+		# merged = list(itertools.chain.from_iterable(search_list))
+
+		# search_dict = dict(zip(parent_list, merged))
+		# print(search_dict)
+		# print()
+		# print(len(merged))
+		# print(len(parent_list))
 
 
 		self.num+=1
@@ -358,9 +393,7 @@ class Example(QWidget):
 
 			self.all_lists[self.search_col].item(item_index).setSelected(True)
 
-			self.list_1.scrollToItem(self.list_1.item(item_index), QAbstractItemView.PositionAtCenter)
-			self.list_2.scrollToItem(self.list_2.item(item_index), QAbstractItemView.PositionAtCenter)
-			self.list_3.scrollToItem(self.list_3.item(item_index), QAbstractItemView.PositionAtCenter)
+			# self.list_1.scrollToItem(self.list_1.item(item_index), QAbstractItemView.PositionAtCenter)
 
 
 	def add_item(self):
@@ -377,9 +410,10 @@ class Example(QWidget):
 			elif x == 2:
 				lister(file=self.curr_file, target=self.list_3, index=x, mode=1)
 
-		item =  self.list_1.item(self.list_1.count()-1) # use itemChanged to jump to the next column and edit
+		item =  self.list_1.item(self.list_1.count()-1)
 		self.list_1.editItem(item)
 		status(self.status_bar, self.list_1)
+		self.list_1.scrollToBottom()
 
 
 	def clear_selection(self):
@@ -400,15 +434,14 @@ class Example(QWidget):
 		self.curr_file = path[0]
 		self.setWindowTitle(f'{split_name(self.curr_file)}')
 
-		self.list_1.clear()
-		self.list_2.clear()
-		self.list_3.clear()
+		clear_lists(self.all_lists)
 
 		lister(file=self.curr_file ,target=self.list_1, index=0)
 		lister(file=self.curr_file ,target=self.list_2, index=1)
 		lister(file=self.curr_file ,target=self.list_3, index=2)
 
 		status(self.status_bar, self.list_1)
+		self.theme()
 
 
 	def save(self, mode=0): 
