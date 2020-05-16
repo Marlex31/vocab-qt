@@ -11,7 +11,7 @@ search bar not scaling to col amount
 
 special char sorting with same family
 
-no text magnification
+font size option
 
 might want to change list and other var names to match indicies ex: self.list_0
 
@@ -25,10 +25,14 @@ add exit shortcut - SOLVED -
 
 transfer clear_selection to utility file
 
-scroll to new item
+scroll to new item - SOLVED -
 
 sync selection between columns
 
 selected item edit shortcut
 
-when editing (last) item, next col counter part is edited too :(
+when editing item, next col counter part is edited too - SOLVED -
+
+the add field has only one option, add more or merge it
+
+remember size on exit in config file - SOLVED -

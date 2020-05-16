@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import QListWidgetItem
 from PyQt5.QtGui import QFont, QColor #, QIcon
+from PyQt5.QtCore import QRect
 
 import csv
 import json
@@ -16,7 +17,7 @@ def set_font(text):
 	item.setText(text)
 
 	font = QFont()
-	font.setPointSize(12)
+	font.setPointSize(15)
 	font.setFamily('Helvatica')
 	item.setFont(font)
 
@@ -106,7 +107,7 @@ def split_name(string):
        return string.split('/')[-1]
 
 
-def json_template(theme=False, files=[f"{getcwd()}\\vocabulary.csv", None, None]):
+def json_template(theme=False, files=[f"{getcwd()}\\vocabulary.csv", None, None], window_size=[0, 0, 640, 480]):
 	"""Creates a json config file"""
 
 	try:
@@ -127,9 +128,10 @@ def json_template(theme=False, files=[f"{getcwd()}\\vocabulary.csv", None, None]
 
 			settings.update({'dark_theme':theme})
 			settings.update({'recent_files':files})
+			settings.update({'window_size':window_size})
 
 	except:
-		settings = {'dark_theme':theme, 'recent_files':files}
+		settings = {'dark_theme':theme, 'recent_files':files, 'window_size':window_size}
 
 
 	with open('settings.json', 'w') as w:
@@ -138,8 +140,20 @@ def json_template(theme=False, files=[f"{getcwd()}\\vocabulary.csv", None, None]
 # json_template()
 
 
+def json_window_size():
+
+	with open('settings.json', 'r', encoding='utf8') as f:
+			settings = json.load(f)
+			size = tuple(settings['window_size'])
+
+			return size
+
+# print(json_window_size())
+
+
 def json_files():
 	"""Returns recently opened files and creates a default csv if none found"""
+
 	try: 
 		with open('settings.json', 'r', encoding='utf8') as f:
 			settings = json.load(f)

@@ -1,6 +1,6 @@
 
 from PyQt5.QtWidgets import (QWidget, QListWidget, QGridLayout, QApplication, QMenuBar, QAction, qApp, 
-QLineEdit, QAbstractItemView, QStyle, QFileDialog, QMenu, QStatusBar, QMessageBox)
+							QLineEdit, QAbstractItemView, QStyle, QFileDialog, QMenu, QStatusBar, QMessageBox)
 from PyQt5.QtCore import Qt, QEvent, QUrl
 from PyQt5.QtGui import QPalette, QColor
 
@@ -11,9 +11,9 @@ from utilities import *
 
 
 class Example(QWidget):
-	
+
 	def __init__(self):
-		super().__init__() 
+		super().__init__()
 
 		self.filenames = json_files()
 
@@ -64,7 +64,7 @@ class Example(QWidget):
 		showAct = QAction('Show extras', self, checkable=True)  
 		showAct.setChecked(False)
 		showAct.setShortcut('Ctrl+E')
-		showAct.triggered.connect(self.pressed)
+		showAct.triggered.connect(self.hide_notes)
 
 		addAct = QAction('Fields', self)  
 		addAct.setShortcut('Ctrl+N')
@@ -144,8 +144,8 @@ class Example(QWidget):
 		grid.addWidget(self.status_bar)
 
 		self.theme()
-		self.setLayout(grid)      
-		self.setGeometry(300, 300, 600, 300) 
+		self.setLayout(grid)
+		self.setGeometry(*json_window_size())
 		self.setWindowTitle(f'{split_name(self.curr_file)}')
 		self.show()
 
@@ -167,10 +167,12 @@ class Example(QWidget):
 	def edit_next_item(self, event):
 		"""When an item is added and edited on the first col, starts editing its counterpart on the next col"""
 
-		if self.list_items != self.list_1.count() and self.refresh_file == False:
+		if self.list_items == self.list_1.count()-2 or self.list_items != self.list_1.count() and self.refresh_file == False:
 
 			item =  self.list_2.item(self.list_2.count()-1)
 			self.list_2.editItem(item)
+
+			self.list_items = self.list_1.count()
 
 
 	def closeEvent(self, event):
@@ -301,7 +303,7 @@ class Example(QWidget):
 		return super(Example, self).eventFilter(source, event)
 
 
-	def pressed(self): 
+	def hide_notes(self): 
 		"""Toggles showing the note column and stretches the window for clearer reading of it"""
 
 		self.list_3.setHidden(not self.list_3.isHidden())
@@ -392,8 +394,7 @@ class Example(QWidget):
 			item_index = model_index.row()
 
 			self.all_lists[self.search_col].item(item_index).setSelected(True)
-
-			# self.list_1.scrollToItem(self.list_1.item(item_index), QAbstractItemView.PositionAtCenter)
+			self.list_1.scrollToItem(self.list_1.item(item_index), QAbstractItemView.PositionAtCenter)
 
 
 	def add_item(self):
@@ -413,7 +414,10 @@ class Example(QWidget):
 		item =  self.list_1.item(self.list_1.count()-1)
 		self.list_1.editItem(item)
 		status(self.status_bar, self.list_1)
+		
 		self.list_1.scrollToBottom()
+		self.list_2.scrollToBottom()
+		self.list_3.scrollToBottom()
 
 
 	def clear_selection(self):
@@ -444,7 +448,7 @@ class Example(QWidget):
 		self.theme()
 
 
-	def save(self, mode=0): 
+	def save(self, mode=0):
 
 		self.show_save = False
 
@@ -463,7 +467,7 @@ class Example(QWidget):
 			status(self.status_bar, self.list_1, ('Saved current changes.'))
 			
 			try:
-				json_template(theme=self.theme_bool, files=[self.curr_file, None, None])
+				json_template(theme=self.theme_bool, files=[self.curr_file, None, None], window_size=self.geometry().getRect()) # current size values of the window 
 
 			except:
 				json_template() # bug cannot be avoided, even though used setChecked at the beggining
