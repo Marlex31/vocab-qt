@@ -1,7 +1,7 @@
 
 from PyQt5.QtWidgets import (QWidget, QListWidget, QGridLayout, QApplication, QMenuBar, QAction, qApp, 
 							QLineEdit, QAbstractItemView, QStyle, QFileDialog, QMenu, QStatusBar, QMessageBox)
-from PyQt5.QtCore import Qt, QEvent, QUrl
+from PyQt5.QtCore import Qt, QEvent
 from PyQt5.QtGui import QPalette, QColor
 
 import sys
@@ -34,21 +34,28 @@ class Example(QWidget):
 
 		self.list_1 = QListWidget()
 
-		lister(file=self.curr_file, target=self.list_1, index=0, mode=0) 
-		self.list_1.clicked.connect(self.clear_selection)
+		try:
+			lister(file=self.curr_file, target=self.list_1, index=0, mode=0)
+
+		except FileNotFoundError:
+			print(getcwd())
+			error_display()
+
+		self.list_1.clicked.connect(self.neighbour_selection)
 		self.list_1.installEventFilter(self)
 
 		self.list_items = self.list_1.count() # failsafe 2 for itemChanged trigger
 		self.list_1.itemChanged.connect(self.edit_next_item)
 		self.list_1.verticalScrollBar().valueChanged.connect(self.sync_scroll)
+		self.list_1.itemClicked.connect(self.edit_bind)
 
 		self.list_2 = QListWidget()
 		lister(file=self.curr_file, target=self.list_2, index=1, mode=0)
-		self.list_2.clicked.connect(self.clear_selection)
+		self.list_2.clicked.connect(self.neighbour_selection)
 
 		self.list_3 = QListWidget()
 		lister(file=self.curr_file, target=self.list_3, index=2, mode=0)
-		self.list_3.clicked.connect(self.clear_selection)
+		self.list_3.clicked.connect(self.neighbour_selection)
 
 		self.all_lists = [self.list_1, self.list_2, self.list_3]
 
@@ -57,7 +64,15 @@ class Example(QWidget):
 		self.menubar.setNativeMenuBar(False)
 
 
-		exit_event = QAction('Exit', self)  
+		self.search_bar = QLineEdit()
+		self.search_bar.setPlaceholderText('Search vocab')
+		self.search_bar.setClearButtonEnabled(True)
+		self.search_bar.setMaxLength(15)
+		self.search_bar.returnPressed.connect(self.search_item)
+
+
+
+		exit_event = QAction('Exit without saving', self)  
 		exit_event.setShortcut('Ctrl+W')
 		exit_event.triggered.connect(app.quit)
 
@@ -88,6 +103,11 @@ class Example(QWidget):
 		self.toggle_theme.triggered.connect(self.theme)
 		self.toggle_theme.setShortcut('Ctrl+T')
 
+		self.search_act = QAction('Toggle theme', self)
+		self.search_act.triggered.connect(self.search_bind)
+		self.search_act.setShortcut('Ctrl+F')
+
+
 		self.col_sort_index = QMenu('Sorting column index', self)
 		self.col_sort_index.addAction(QAction(str(0), self))
 		self.col_sort_index.addAction(QAction(str(1), self))
@@ -111,24 +131,19 @@ class Example(QWidget):
 		self.addFields.addAction(addAct)
 
 		self.optionMenu = self.menubar.addMenu('Options')
-		self.optionMenu.addAction(exit_event)
 		self.optionMenu.addAction(showAct)
 		self.optionMenu.addAction(self.toggle_theme)
+		self.optionMenu.addAction(self.search_act)
 		self.optionMenu.addMenu(self.col_sort_index)
 		self.optionMenu.addMenu(self.col_search_index)
 		self.optionMenu.addAction(self.sort)
 
 		self.fileMenu = self.menubar.addMenu('File')
+		self.fileMenu.addAction(exit_event)
 		self.fileMenu.addAction(fileOpen)
 		self.fileMenu.addAction(fileSave)
 		self.fileMenu.addMenu(self.fileRecents)
 
-
-		self.search_bar = QLineEdit()
-		self.search_bar.setPlaceholderText('Search vocab')
-		self.search_bar.setClearButtonEnabled(True)
-		self.search_bar.setMaxLength(10)
-		self.search_bar.returnPressed.connect(self.search_item)
 
 		self.status_bar = QStatusBar()
 		status(self.status_bar, self.list_1)
@@ -154,6 +169,17 @@ class Example(QWidget):
 		self.list_3.verticalScrollBar().setHidden(True)
 		self.list_3.setHidden(True)
 
+
+	def edit_bind(self, item):
+
+		print(item.text())
+		# self.list_1.editItem(item)
+		# print(self.list_1.selectedItems())
+
+
+	def search_bind(self):
+		
+		self.search_bar.setFocus()
 
 
 	def sync_scroll(self):
@@ -357,8 +383,7 @@ class Example(QWidget):
 		query = self.search_bar.text()
 		search = self.all_lists[self.search_col].findItems(query, Qt.MatchContains)
 		status(self.status_bar, self.list_1, f'Found {len(search)} results.')
-		self.clear_selection()
-
+		
 
 		# testing search in all column
 
@@ -393,7 +418,9 @@ class Example(QWidget):
 
 			item_index = model_index.row()
 
-			self.all_lists[self.search_col].item(item_index).setSelected(True)
+			for ls in self.all_lists:
+				ls.item(item_index).setSelected(True)
+
 			self.list_1.scrollToItem(self.list_1.item(item_index), QAbstractItemView.PositionAtCenter)
 
 
@@ -420,12 +447,12 @@ class Example(QWidget):
 		self.list_3.scrollToBottom()
 
 
-	def clear_selection(self):
-		"""Clears all item slections for aesthetical purposes, but only single clicks"""
+	def neighbour_selection(self, item):
+		"""Selects items on the same row from different columns"""
 
-		self.list_1.clearSelection()
-		self.list_2.clearSelection()
-		self.list_3.clearSelection()
+		for ls in self.all_lists:
+			ls.item(item.row()).setSelected(True)
+		# print(dir(item))
 
 
 	def fileDialog(self):

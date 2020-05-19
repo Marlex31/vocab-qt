@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QListWidgetItem
+from PyQt5.QtWidgets import QListWidgetItem, QMessageBox
 from PyQt5.QtGui import QFont, QColor #, QIcon
 from PyQt5.QtCore import QRect
 
@@ -59,7 +59,7 @@ def writer(file, data):
 	with open(file, 'w', encoding='utf8', newline='') as w:
 		w_write = csv.DictWriter(w, delimiter=',', fieldnames=fieldnames)
 		w_write.writeheader()
-		
+		print(file)
 		for item in data:
 			w_write.writerow(item)
 
@@ -212,3 +212,14 @@ def sorting(file, column):
 		return sorted_list
 
 # print(sorting('vocabulary.csv', 0))
+
+def error_display():
+	
+	error_dialog = QMessageBox()
+	# print(dir(error_dialog))
+	error_dialog.setIcon(QMessageBox.Critical)
+	error_dialog.setText('File not found!')
+	error_dialog.setInformativeText('A new file will be created.')
+	error_dialog.setWindowTitle("Error")
+	error_dialog.setStyleSheet("QLabel{min-width: 135px;}")
+	error_dialog.exec_()
