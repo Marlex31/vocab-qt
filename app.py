@@ -8,6 +8,7 @@ import sys
 from os import getcwd, remove
 
 from utilities import *
+from config import Config
 
 
 class Example(QWidget):
@@ -15,7 +16,9 @@ class Example(QWidget):
 	def __init__(self):
 		super().__init__()
 
-		self.filenames = json_files()
+		config = Config()
+
+		self.filenames = config.recent_files
 
 		if type(self.filenames) is list:
 			self.curr_file = self.filenames[0]
@@ -99,7 +102,7 @@ class Example(QWidget):
 
 		
 		self.toggle_theme = QAction('Toggle theme', self, checkable=True)
-		self.toggle_theme.setChecked(json_theme())
+		self.toggle_theme.setChecked(config.dark_theme)
 		self.toggle_theme.triggered.connect(self.theme)
 		self.toggle_theme.setShortcut('Ctrl+T')
 
@@ -160,7 +163,7 @@ class Example(QWidget):
 
 		self.theme()
 		self.setLayout(grid)
-		self.setGeometry(*json_window_size())
+		self.setGeometry(*config.window_size)
 		self.setWindowTitle(f'{split_name(self.curr_file)}')
 		self.show()
 
@@ -485,7 +488,7 @@ class Example(QWidget):
 
 		total_dicts = []
 		for (a, b, c) in zip(list1_items, list2_items, list3_items): # each letter is a column
-			dictionary = {'word_1':a, 'word_2':b, 'notes':c}
+			dictionary = {'col_1':a, 'col_2':b, 'col_3':c}
 			total_dicts.append(dictionary)
 		
 		if mode == 0:
@@ -494,7 +497,7 @@ class Example(QWidget):
 			status(self.status_bar, self.list_1, ('Saved current changes.'))
 			
 			try:
-				json_template(theme=self.theme_bool, files=[self.curr_file, None, None], window_size=self.geometry().getRect()) # current size values of the window 
+				json_template(theme=self.theme_bool, files=[self.curr_file, None, None], window_size=self.geometry().getRect()) # getRect - current size values of the window 
 
 			except:
 				json_template() # bug cannot be avoided, even though used setChecked at the beggining

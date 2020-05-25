@@ -55,7 +55,7 @@ def reader(filename, index):
 def writer(file, data):
 	"""Writes the contents of the lists inside csv files"""
 
-	fieldnames = ["word_1","word_2","notes"]
+	fieldnames = ["col_1","col_2","col_3"]
 	with open(file, 'w', encoding='utf8', newline='') as w:
 		w_write = csv.DictWriter(w, delimiter=',', fieldnames=fieldnames)
 		w_write.writeheader()
@@ -91,6 +91,7 @@ def clear_lists(QListWidgets):
 
 	for i in QListWidgets:
 		i.clear()
+
 
 def status(bar, list_widget, message=''):
 	"""Sets text displayed by status bar"""
@@ -142,11 +143,15 @@ def json_template(theme=False, files=[f"{getcwd()}\\vocabulary.csv", None, None]
 
 def json_window_size():
 
-	with open('settings.json', 'r', encoding='utf8') as f:
+	try:
+		with open('settings.json', 'r', encoding='utf8') as f:
 			settings = json.load(f)
 			size = tuple(settings['window_size'])
 
-			return size
+	except:
+		size = (0, 0, 640, 480)
+
+	return size
 
 # print(json_window_size())
 
@@ -163,8 +168,8 @@ def json_files():
 
 	except:
 		filename = f'{getcwd()}\\vocabulary.csv'
-		with open(filename, 'w') as w:
-			writer(file=filename, data=[{'word_1':'lorem', 'word_2':'ipsum', 'notes':'dolor'}])
+		with open(filename, 'w', encoding='utf8') as w:
+			writer(file=filename, data=[{'col_1':'lorem', 'col_2':'ipsum', 'col_3':'dolor'}])
 			return filename
 
 # print(json_files())
@@ -174,7 +179,7 @@ def json_theme():
 	"""Returns the theme settings saved in the json config file, used on start-up of the program"""
 
 	try:
-		with open('settings.json', 'r') as r:
+		with open('settings.json', 'r', encoding='utf8') as r:
 			settings = json.load(r)	
 			if settings['dark_theme'] == True:
 				return True
