@@ -66,16 +66,14 @@ def style_items(QLists, dark_theme=False):
 	"""Stylizes the QListWidget items for light and dark themes"""
 
 	for QList in QLists:
-		items =  list(QList.item(i) for i in range(QList.count()))
+		items =  [QList.item(i) for i in range(QList.count())]
 
 		for item in items:
 			if dark_theme == False:
 				item.setForeground(QColor(0, 0, 0))
-				QList.setStyleSheet("background-color: rgb(255, 255, 255);")
 
 			else:
 				item.setForeground(QColor(240, 240, 240))
-				QList.setStyleSheet("background-color: rgb(0, 0, 0);")
 
 
 def items_text(QList):

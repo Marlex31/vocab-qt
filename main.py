@@ -357,6 +357,9 @@ class Example(QWidget):
 			self.search_bar.setStyleSheet("background-color: rgb(0, 0, 0); color: rgb(255, 255, 255)") # border: 0px; for transparency
 			self.status_bar.setStyleSheet(dark)
 
+			for ls in self.all_lists: ls.setStyleSheet(dark)
+
+
 			style_items(self.all_lists, dark_theme=True)
 		
 		# light theme
@@ -371,6 +374,8 @@ class Example(QWidget):
 			self.fileMenu.setStyleSheet(light)
 			self.search_bar.setStyleSheet(light)
 			self.status_bar.setStyleSheet(light)
+
+			for ls in self.all_lists: ls.setStyleSheet(light)
 
 			style_items(self.all_lists, dark_theme=False)
 
@@ -422,8 +427,7 @@ class Example(QWidget):
 
 			item_index = model_index.row()
 
-			for ls in self.all_lists:
-				ls.item(item_index).setSelected(True)
+			for ls in self.all_lists: ls.item(item_index).setSelected(True)
 
 			self.list_1.scrollToItem(self.list_1.item(item_index), QAbstractItemView.PositionAtCenter)
 
