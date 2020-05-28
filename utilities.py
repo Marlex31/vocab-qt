@@ -3,7 +3,6 @@ from PyQt5.QtGui import QFont, QColor #, QIcon
 from PyQt5.QtCore import QRect
 
 import csv
-import json
 import operator
 
 from os import getcwd
@@ -59,7 +58,6 @@ def writer(file, data):
 	with open(file, 'w', encoding='utf8', newline='') as w:
 		w_write = csv.DictWriter(w, delimiter=',', fieldnames=fieldnames)
 		w_write.writeheader()
-		print(file)
 		for item in data:
 			w_write.writerow(item)
 
@@ -106,87 +104,6 @@ def split_name(string):
        	return string.split('\\')[-1] # support for os.getcwd paths
 
        return string.split('/')[-1]
-
-
-def json_template(theme=False, files=[f"{getcwd()}\\vocabulary.csv", None, None], window_size=[0, 0, 640, 480]):
-	"""Creates a json config file"""
-
-	try:
-		with open('settings.json', 'r') as r:
-
-			settings = json.load(r)
-
-			for i in range(3): 
-				if files[0] == settings['recent_files'][0]:
-					files = settings['recent_files']
-					break
-
-				elif settings['recent_files'][i] not in files and i <= 1:
-					files[i+1] = settings['recent_files'][i]
-
-				elif i == 2:
-					break
-
-			settings.update({'dark_theme':theme})
-			settings.update({'recent_files':files})
-			settings.update({'window_size':window_size})
-
-	except:
-		settings = {'dark_theme':theme, 'recent_files':files, 'window_size':window_size}
-
-
-	with open('settings.json', 'w') as w:
-		json.dump(settings, w)
-
-# json_template()
-
-
-def json_window_size():
-
-	try:
-		with open('settings.json', 'r', encoding='utf8') as f:
-			settings = json.load(f)
-			size = tuple(settings['window_size'])
-
-	except:
-		size = (0, 0, 640, 480)
-
-	return size
-
-# print(json_window_size())
-
-
-def json_files():
-	"""Returns recently opened files and creates a default csv if none found"""
-
-	try: 
-		with open('settings.json', 'r', encoding='utf8') as f:
-			settings = json.load(f)
-			
-			if settings['recent_files'][0] != None:
-				return settings['recent_files']
-
-	except:
-		filename = f'{getcwd()}\\vocabulary.csv'
-		with open(filename, 'w', encoding='utf8') as w:
-			writer(file=filename, data=[{'col_1':'lorem', 'col_2':'ipsum', 'col_3':'dolor'}])
-			return filename
-
-# print(json_files())
-
-
-def json_theme():
-	"""Returns the theme settings saved in the json config file, used on start-up of the program"""
-
-	try:
-		with open('settings.json', 'r', encoding='utf8') as r:
-			settings = json.load(r)	
-			if settings['dark_theme'] == True:
-				return True
-			return False
-
-	except:
-		return False
 
 
 def sorting(file, column): 

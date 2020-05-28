@@ -16,9 +16,9 @@ class Example(QWidget):
 	def __init__(self):
 		super().__init__()
 
-		config = Config()
+		self.config = Config()
 
-		self.filenames = config.recent_files
+		self.filenames = self.config.recent_files
 
 		if type(self.filenames) is list:
 			self.curr_file = self.filenames[0]
@@ -41,7 +41,7 @@ class Example(QWidget):
 			lister(file=self.curr_file, target=self.list_1, index=0, mode=0)
 
 		except FileNotFoundError:
-			print(getcwd())
+			# print(getcwd())
 			error_display()
 
 		self.list_1.clicked.connect(self.neighbour_selection)
@@ -80,7 +80,7 @@ class Example(QWidget):
 		exit_event.triggered.connect(app.quit)
 
 		showAct = QAction('Show extras', self, checkable=True)  
-		showAct.setChecked(False)
+		showAct.setChecked(self.config.dark_theme)
 		showAct.setShortcut('Ctrl+E')
 		showAct.triggered.connect(self.hide_notes)
 
@@ -102,7 +102,7 @@ class Example(QWidget):
 
 		
 		self.toggle_theme = QAction('Toggle theme', self, checkable=True)
-		self.toggle_theme.setChecked(config.dark_theme)
+		self.toggle_theme.setChecked(self.config.dark_theme)
 		self.toggle_theme.triggered.connect(self.theme)
 		self.toggle_theme.setShortcut('Ctrl+T')
 
@@ -163,7 +163,7 @@ class Example(QWidget):
 
 		self.theme()
 		self.setLayout(grid)
-		self.setGeometry(*config.window_size)
+		self.setGeometry(*self.config.window_size)
 		self.setWindowTitle(f'{split_name(self.curr_file)}')
 		self.show()
 
@@ -175,7 +175,8 @@ class Example(QWidget):
 
 	def edit_bind(self, item):
 
-		print(item.text())
+		pass
+		# print(item.text())
 		# self.list_1.editItem(item)
 		# print(self.list_1.selectedItems())
 
@@ -497,11 +498,9 @@ class Example(QWidget):
 			status(self.status_bar, self.list_1, ('Saved current changes.'))
 			
 			try:
-				json_template(theme=self.theme_bool, files=[self.curr_file, None, None], window_size=self.geometry().getRect()) # getRect - current size values of the window 
-
+				self.config.save(dark_theme=self.theme_bool, recent_files=[self.curr_file, None, None], window_size=self.geometry().getRect())
 			except:
-				json_template() # bug cannot be avoided, even though used setChecked at the beggining
-
+				print('error')
 
 		elif mode == 1:
 
