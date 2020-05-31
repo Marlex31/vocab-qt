@@ -38,3 +38,11 @@ remember size on exit in config file - SOLVED -
 search bar shortcut ctrl+f - SOLVED -
 
 try finding inexistant file (ex renamed) and raising a QMessageError
+
+auto fill in definition by scraping results, use third col for hyperlink or other info
+
+clear selection action
+
+add undo func with 3 steps: edit col 2, col 1, and delete row on third press
+
+delete trailing spaces after adding items, or when saving

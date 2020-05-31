@@ -34,11 +34,12 @@ class Example(QWidget):
 		self.show_save = False # bool for showing unsaved changes dialog
 		self.temp_file = ".temp.csv"
 		self.refresh_file = False # failsafe 1 for itemChanged trigger
+		self.font_size = 15
 
 		self.list_1 = QListWidget()
 
 		try:
-			lister(file=self.curr_file, target=self.list_1, index=0, mode=0)
+			lister(file=self.curr_file, target=self.list_1, index=0, mode=0, size=self.font_size)
 
 		except FileNotFoundError:
 			# print(getcwd())
@@ -53,11 +54,11 @@ class Example(QWidget):
 		self.list_1.itemClicked.connect(self.edit_bind)
 
 		self.list_2 = QListWidget()
-		lister(file=self.curr_file, target=self.list_2, index=1, mode=0)
+		lister(file=self.curr_file, target=self.list_2, index=1, mode=0, size=self.font_size)
 		self.list_2.clicked.connect(self.neighbour_selection)
 
 		self.list_3 = QListWidget()
-		lister(file=self.curr_file, target=self.list_3, index=2, mode=0)
+		lister(file=self.curr_file, target=self.list_3, index=2, mode=0, size=self.font_size)
 		self.list_3.clicked.connect(self.neighbour_selection)
 
 		self.all_lists = [self.list_1, self.list_2, self.list_3]
@@ -112,15 +113,15 @@ class Example(QWidget):
 
 
 		self.col_sort_index = QMenu('Sorting column index', self)
-		self.col_sort_index.addAction(QAction(str(0), self))
-		self.col_sort_index.addAction(QAction(str(1), self))
-		self.col_sort_index.addAction(QAction(str(2), self))
+		self.col_sort_index.addAction(QAction("0", self))
+		self.col_sort_index.addAction(QAction("1", self))
+		self.col_sort_index.addAction(QAction("2", self))
 		self.col_sort_index.triggered.connect(self.sort_col_choice)
 
 		self.col_search_index = QMenu('Searching column index', self)
-		self.col_search_index.addAction(QAction(str(0), self))
-		self.col_search_index.addAction(QAction(str(1), self))
-		self.col_search_index.addAction(QAction(str(2), self))
+		self.col_search_index.addAction(QAction('0', self))
+		self.col_search_index.addAction(QAction('1', self))
+		self.col_search_index.addAction(QAction('2', self))
 		self.col_search_index.triggered.connect(self.search_col_choice)
 
 		self.sort = QAction('Sort entries', self, checkable=True)
@@ -128,6 +129,13 @@ class Example(QWidget):
 		self.search_col = 0
 		self.sort.triggered.connect(self.refresh_list)
 		self.sort.setShortcut('Ctrl+R')
+
+		self.font_act = QMenu('Set font size', self)
+		self.font_act.addAction(QAction("15", self, checkable=True))
+		self.font_act.addAction(QAction("20", self, checkable=True))
+		self.font_act.addAction(QAction("25", self, checkable=True))
+		self.font_act.triggered.connect(self.set_font)
+		print(self.font_act.actions()[0].isChecked())
 
 
 		self.addFields = self.menubar.addMenu('Add')
@@ -140,6 +148,7 @@ class Example(QWidget):
 		self.optionMenu.addMenu(self.col_sort_index)
 		self.optionMenu.addMenu(self.col_search_index)
 		self.optionMenu.addAction(self.sort)
+		self.optionMenu.addMenu(self.font_act)
 
 		self.fileMenu = self.menubar.addMenu('File')
 		self.fileMenu.addAction(exit_event)
@@ -171,6 +180,13 @@ class Example(QWidget):
 		self.list_2.verticalScrollBar().setHidden(True)
 		self.list_3.verticalScrollBar().setHidden(True)
 		self.list_3.setHidden(True)
+
+
+
+	def set_font(self, action):
+
+		self.font_size = int(action.text())
+		self.refresh_list()
 
 
 	def edit_bind(self, item):
@@ -248,14 +264,14 @@ class Example(QWidget):
 			mode = 0
 
 		try:
-			lister(file=self.temp_file, target=self.list_1, index=0, mode=mode, column=self.curr_col)
-			lister(file=self.temp_file, target=self.list_2, index=1, mode=mode, column=self.curr_col)
-			lister(file=self.temp_file, target=self.list_3, index=2, mode=mode, column=self.curr_col)
+			lister(file=self.temp_file, target=self.list_1, index=0, mode=mode, column=self.curr_col, size=self.font_size)
+			lister(file=self.temp_file, target=self.list_2, index=1, mode=mode, column=self.curr_col, size=self.font_size)
+			lister(file=self.temp_file, target=self.list_3, index=2, mode=mode, column=self.curr_col, size=self.font_size)
 		
 		except:
-			lister(file=self.curr_file, target=self.list_1, index=0, mode=mode, column=self.curr_col)
-			lister(file=self.curr_file, target=self.list_2, index=1, mode=mode, column=self.curr_col)
-			lister(file=self.curr_file, target=self.list_3, index=2, mode=mode, column=self.curr_col)
+			lister(file=self.curr_file, target=self.list_1, index=0, mode=mode, column=self.curr_col, size=self.font_size)
+			lister(file=self.curr_file, target=self.list_2, index=1, mode=mode, column=self.curr_col, size=self.font_size)
+			lister(file=self.curr_file, target=self.list_3, index=2, mode=mode, column=self.curr_col, size=self.font_size)
 
 
 	def refresh_recents(self):
@@ -292,9 +308,9 @@ class Example(QWidget):
 
 		clear_lists(self.all_lists)
 
-		lister(file=self.curr_file, target=self.list_1, index=0)
-		lister(file=self.curr_file, target=self.list_2, index=1)
-		lister(file=self.curr_file, target=self.list_3, index=2)
+		lister(file=self.curr_file, target=self.list_1, index=0, size=self.font_size)
+		lister(file=self.curr_file, target=self.list_2, index=1, size=self.font_size)
+		lister(file=self.curr_file, target=self.list_3, index=2, size=self.font_size)
 
 		status(self.status_bar, self.list_1)
 		self.theme()
@@ -438,13 +454,13 @@ class Example(QWidget):
 
 		for x in range(3):  
 			if x == 0:
-				lister(file=self.curr_file, target=self.list_1, index=x, mode=1)
+				lister(file=self.curr_file, target=self.list_1, index=x, mode=1, size=self.font_size)
 
 			elif x == 1:
-				lister(file=self.curr_file,target=self.list_2, index=x, mode=1)
+				lister(file=self.curr_file,target=self.list_2, index=x, mode=1, size=self.font_size)
 
-			elif x == 2:
-				lister(file=self.curr_file, target=self.list_3, index=x, mode=1)
+			else:
+				lister(file=self.curr_file, target=self.list_3, index=x, mode=1, size=self.font_size)
 
 		item =  self.list_1.item(self.list_1.count()-1)
 		self.list_1.editItem(item)
@@ -475,9 +491,9 @@ class Example(QWidget):
 
 		clear_lists(self.all_lists)
 
-		lister(file=self.curr_file ,target=self.list_1, index=0)
-		lister(file=self.curr_file ,target=self.list_2, index=1)
-		lister(file=self.curr_file ,target=self.list_3, index=2)
+		lister(file=self.curr_file ,target=self.list_1, index=0, size=self.font_size)
+		lister(file=self.curr_file ,target=self.list_2, index=1, size=self.font_size)
+		lister(file=self.curr_file ,target=self.list_3, index=2, size=self.font_size)
 
 		status(self.status_bar, self.list_1)
 		self.theme()

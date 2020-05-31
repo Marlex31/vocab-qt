@@ -4,3 +4,4 @@ venv
 settings.json
 test.py
 Distributable
+*.csv

@@ -9,14 +9,14 @@ from os import getcwd
 from itertools import chain
 
 
-def set_font(text):  
+def set_font(text, size):  
 	"""Customizes the font of the list widget items"""
 
 	item = QListWidgetItem()
 	item.setText(text)
 
 	font = QFont()
-	font.setPointSize(15)
+	font.setPointSize(size)
 	font.setFamily('Helvatica')
 	item.setFont(font)
 
@@ -26,19 +26,19 @@ def set_font(text):
 	return item
 
 
-def lister(file, target, index, mode=0, column=0):
+def lister(file, target, index, mode=0, column=0, size=15):
 	"""Adds items to specified column"""
 
 	if mode == 0:
 		for name in reader(file, index=index): # get path through the dialog
-			target.addItem(set_font(name)) 
+			target.addItem(set_font(name, size)) 
 
 	elif mode == 1:
-		target.addItem(set_font(''))
+		target.addItem(set_font('', size))
 
 	elif mode == 2:
 		for line in sorting(file, column)[index]:
-			target.addItem(set_font(line))
+			target.addItem(set_font(line, size))
 
 
 def reader(filename, index): 
