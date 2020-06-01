@@ -25,7 +25,7 @@ transfer clear_selection to utility file
 
 scroll to new item - SOLVED -
 
-sync selection between columns -WIP-
+sync selection between columns -WIP- not working when using arrow keys or tabs, only with mouse selection
 
 selected item edit shortcut
 
@@ -45,4 +45,8 @@ clear selection action
 
 add undo func with 3 steps: edit col 2, col 1, and delete row on third press
 
-delete trailing spaces after adding items, or when saving
+delete trailing spaces after adding items, or when saving - SOLVED -
+
+setChecked func that selects and deselects appropriate options, take a qmenu as argument - SOLVED -  
+
+some qmenu options do not respond to setChecked

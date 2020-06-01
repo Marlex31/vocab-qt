@@ -11,7 +11,7 @@ from utilities import *
 from config import Config
 
 
-class Example(QWidget):
+class Vocab(QWidget):
 
 	def __init__(self):
 		super().__init__()
@@ -107,19 +107,21 @@ class Example(QWidget):
 		self.toggle_theme.triggered.connect(self.theme)
 		self.toggle_theme.setShortcut('Ctrl+T')
 
-		self.search_act = QAction('Toggle theme', self)
+		self.search_act = QAction('Search', self)
 		self.search_act.triggered.connect(self.search_bind)
 		self.search_act.setShortcut('Ctrl+F')
 
 
 		self.col_sort_index = QMenu('Sorting column index', self)
 		self.col_sort_index.addAction(QAction("0", self))
+		self.col_sort_index.actions()[0].setChecked(True) # sets the default option checked
 		self.col_sort_index.addAction(QAction("1", self))
 		self.col_sort_index.addAction(QAction("2", self))
 		self.col_sort_index.triggered.connect(self.sort_col_choice)
 
 		self.col_search_index = QMenu('Searching column index', self)
 		self.col_search_index.addAction(QAction('0', self))
+		self.col_search_index.actions()[0].setChecked(True)
 		self.col_search_index.addAction(QAction('1', self))
 		self.col_search_index.addAction(QAction('2', self))
 		self.col_search_index.triggered.connect(self.search_col_choice)
@@ -133,9 +135,13 @@ class Example(QWidget):
 		self.font_act = QMenu('Set font size', self)
 		self.font_act.addAction(QAction("15", self, checkable=True))
 		self.font_act.addAction(QAction("20", self, checkable=True))
+		self.font_act.actions()[1].setChecked(True)
 		self.font_act.addAction(QAction("25", self, checkable=True))
 		self.font_act.triggered.connect(self.set_font)
-		print(self.font_act.actions()[0].isChecked())
+
+		self.clear_selected = QAction('Clear selected items', self)
+		self.clear_selected.triggered.connect(lambda: clear_selections(self.all_lists))
+		self.clear_selected.setShortcut('Ctrl+Q')
 
 
 		self.addFields = self.menubar.addMenu('Add')
@@ -149,6 +155,7 @@ class Example(QWidget):
 		self.optionMenu.addMenu(self.col_search_index)
 		self.optionMenu.addAction(self.sort)
 		self.optionMenu.addMenu(self.font_act)
+		self.optionMenu.addAction(self.clear_selected)
 
 		self.fileMenu = self.menubar.addMenu('File')
 		self.fileMenu.addAction(exit_event)
@@ -186,6 +193,7 @@ class Example(QWidget):
 	def set_font(self, action):
 
 		self.font_size = int(action.text())
+		option_checking(self.font_act, self.font_size)
 		self.refresh_list()
 
 
@@ -220,6 +228,8 @@ class Example(QWidget):
 
 			self.list_items = self.list_1.count()
 
+			event.setText(event.text().strip()) # remves leading and trailing whitespaces
+
 
 	def closeEvent(self, event):
 		"""Triggered upon program exit, shows a dialog for unsaved changes using a bool"""
@@ -245,10 +255,14 @@ class Example(QWidget):
 
 
 	def sort_col_choice(self, action):
+
 		self.curr_col = int(action.text())
+		option_checking(self.col_sort_index, self.curr_col)
 
 	def search_col_choice(self, action):
+
 		self.search_col = int(action.text())
+		option_checking(self.col_search_index, self.search_col)
 
 
 	def refresh_list(self):
@@ -346,7 +360,7 @@ class Example(QWidget):
 					pass
 
 			return True
-		return super(Example, self).eventFilter(source, event)
+		return super(Vocab, self).eventFilter(source, event)
 
 
 	def hide_notes(self): 
@@ -471,6 +485,15 @@ class Example(QWidget):
 		self.list_3.scrollToBottom()
 
 
+		# removes leading and trailing spaces from the second last item on col_2
+
+		try:
+			item_2 = self.list_2.items()[-2]
+			item_2.setText(item_2.strip())
+		except:
+			pass
+
+
 	def neighbour_selection(self, item):
 		"""Selects items on the same row from different columns"""
 
@@ -536,5 +559,5 @@ class Example(QWidget):
 if __name__ == '__main__':
 	
 	app = QApplication(sys.argv)
-	ex = Example()
+	vocab = Vocab()
 	sys.exit(app.exec_())

@@ -9,6 +9,19 @@ from os import getcwd
 from itertools import chain
 
 
+def clear_selections(QLists):
+	for ls in QLists: ls.clearSelection()
+
+def option_checking(QMenu, custom_var):
+
+	for action in QMenu.actions():
+
+		if action.text() != str(custom_var):
+			action.setChecked(False) 	
+
+	# print(self.font_act.actions()[0].isChecked())
+
+
 def set_font(text, size):  
 	"""Customizes the font of the list widget items"""
 
@@ -83,10 +96,9 @@ def items_text(QList):
 	return text
 	
 def clear_lists(QListWidgets):
-	"""Clears QListWidgets"""
+	"""Clears QListWidgets of items"""
 
-	for i in QListWidgets:
-		i.clear()
+	for i in QListWidgets: i.clear()
 
 
 def status(bar, list_widget, message=''):
