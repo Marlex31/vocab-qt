@@ -3,13 +3,13 @@ sorting only works on saved items, those not saved are discarded upon sorting - 
 
 next item to added editing - SOLVED - needs to be moved into main add_item func without errors, when text is already added and edited don't edit
 
-sorting results is discarding the original order of added items -WIP-
+sorting results is discarding the original order of added items - SOLVED -
 
 item search only works on column 1 - SOLVED - might want to add suppport for all columns at the same time, could use a dict for all lists and corresponding items and then loop over
 
 search bar not scaling to col amount
 
-special char sorting with same family
+sorting criteria like char family and capitionation, numbers with diff digit number are weird - maybe because they are str, should change sorting function
 
 font size option
 
@@ -50,3 +50,23 @@ delete trailing spaces after adding items, or when saving - SOLVED -
 setChecked func that selects and deselects appropriate options, take a qmenu as argument - SOLVED -  
 
 some qmenu options do not respond to setChecked
+
+add all_list wrapper for the lister function
+
+matrix operation when saving the columns?
+
+error when opening empty csv file
+
+rename file func
+
+get clipboard contents and add them as an item
+
+color coding the noun gender - add a column for storing the gender
+
+when opening a file with one entry, it gets edited on col 2, maybe only when it's not the one previously opened
+
+add column layout editing, maybe with a slider dialog for individual column size
+
+recent files are bugged, or maybe just because you don't find non saved files
+
+temporary file not hidden and not deleted if program exit is with ctrl+w 

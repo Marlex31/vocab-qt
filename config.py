@@ -3,7 +3,7 @@ import json
 
 
 class Config():
-    """docstring for config"""
+    """Object that holds the info read from the config file"""
 
     def __init__(self, dark_theme=False, recent_files=[f"{getcwd()}\\vocabulary.csv", None, None], window_size=[0, 0, 640, 480]):
         super().__init__()

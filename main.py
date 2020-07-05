@@ -10,6 +10,8 @@ from os import getcwd, remove
 from utilities import *
 from config import Config
 
+from googletrans import Translator
+
 
 class Vocab(QWidget):
 
@@ -37,9 +39,12 @@ class Vocab(QWidget):
 		self.font_size = 15
 
 		self.list_1 = QListWidget()
+		self.list_2 = QListWidget()
+		self.list_3 = QListWidget()
+		self.all_lists = [self.list_1, self.list_2, self.list_3]
 
 		try:
-			lister(file=self.curr_file, target=self.list_1, index=0, mode=0, size=self.font_size)
+			lister(file=self.curr_file, target=self.all_lists, index=0, mode=0, size=self.font_size, multiple_writing=True)
 
 		except FileNotFoundError:
 			# print(getcwd())
@@ -53,15 +58,12 @@ class Vocab(QWidget):
 		self.list_1.verticalScrollBar().valueChanged.connect(self.sync_scroll)
 		self.list_1.itemClicked.connect(self.edit_bind)
 
-		self.list_2 = QListWidget()
-		lister(file=self.curr_file, target=self.list_2, index=1, mode=0, size=self.font_size)
+		# lister(file=self.curr_file, target=self.list_2, index=1, mode=0, size=self.font_size)
 		self.list_2.clicked.connect(self.neighbour_selection)
 
-		self.list_3 = QListWidget()
-		lister(file=self.curr_file, target=self.list_3, index=2, mode=0, size=self.font_size)
+		# lister(file=self.curr_file, target=self.list_3, index=2, mode=0, size=self.font_size)
 		self.list_3.clicked.connect(self.neighbour_selection)
 
-		self.all_lists = [self.list_1, self.list_2, self.list_3]
 
 
 		self.menubar = QMenuBar()
@@ -98,7 +100,7 @@ class Vocab(QWidget):
 		fileSave.triggered.connect(self.refresh_recents)
 		fileSave.setShortcut('Ctrl+S')
 
-		self.fileRecents = QMenu('Recent file', self)
+		self.fileRecents = QMenu('Recent files', self)
 		self.refresh_recents()
 
 		
@@ -114,7 +116,7 @@ class Vocab(QWidget):
 
 		self.col_sort_index = QMenu('Sorting column index', self)
 		self.col_sort_index.addAction(QAction("0", self))
-		self.col_sort_index.actions()[0].setChecked(True) # sets the default option checked
+		self.col_sort_index.actions()[0].setChecked(True) # sets the default option checked, not working atm
 		self.col_sort_index.addAction(QAction("1", self))
 		self.col_sort_index.addAction(QAction("2", self))
 		self.col_sort_index.triggered.connect(self.sort_col_choice)
@@ -143,17 +145,21 @@ class Vocab(QWidget):
 		self.clear_selected.triggered.connect(lambda: clear_selections(self.all_lists))
 		self.clear_selected.setShortcut('Ctrl+Q')
 
+		self.translateAct = QAction('Translate empty fields', self)
+		self.translateAct.triggered.connect(self.translate)
+
 
 		self.addFields = self.menubar.addMenu('Add')
 		self.addFields.addAction(addAct)
+		self.addFields.addAction(self.translateAct)
 
 		self.optionMenu = self.menubar.addMenu('Options')
 		self.optionMenu.addAction(showAct)
 		self.optionMenu.addAction(self.toggle_theme)
 		self.optionMenu.addAction(self.search_act)
-		self.optionMenu.addMenu(self.col_sort_index)
 		self.optionMenu.addMenu(self.col_search_index)
 		self.optionMenu.addAction(self.sort)
+		self.optionMenu.addMenu(self.col_sort_index)
 		self.optionMenu.addMenu(self.font_act)
 		self.optionMenu.addAction(self.clear_selected)
 
@@ -188,6 +194,29 @@ class Vocab(QWidget):
 		self.list_3.verticalScrollBar().setHidden(True)
 		self.list_3.setHidden(True)
 
+		self.save(mode=1)
+
+	def translate(self):
+		
+		empty_items=[]
+		for i in range(self.list_2.count()):
+			item = self.list_2.item(i)
+			if item.text() == '' or item.text() == ' ':
+				model = self.list_2.indexFromItem(item) 
+				row = model.row()
+				empty_items.append(row)
+
+
+		trans_items=[]
+		for i in empty_items:
+			trans_items.append(self.list_1.item(i).text())
+
+		translator = Translator()
+
+		result = translator.translate(trans_items, src='fr', dest='ro')
+
+		for i in result:
+			print(i.text)
 
 
 	def set_font(self, action):
@@ -243,7 +272,7 @@ class Vocab(QWidget):
 			if reply == QMessageBox.Yes:
 				try:
 					remove(self.temp_file)
-				except:
+				except FileNotFoundError:
 					pass
 
 				event.accept()
@@ -251,7 +280,10 @@ class Vocab(QWidget):
 				event.ignore()       
 
 		else:
-			pass
+			try:
+				remove(self.temp_file)
+			except FileNotFoundError:
+				pass
 
 
 	def sort_col_choice(self, action):
@@ -267,25 +299,41 @@ class Vocab(QWidget):
 
 	def refresh_list(self):
 		"""Refreshes the contents of the lists, when sorting is used"""
-
-		self.save(mode=1) # saves a temp copy, with changes, but irreversable sorting introduced
+		
+		if self.show_save == True:
+			self.save(mode=1)
 
 		clear_lists(self.all_lists)
+
 
 		if self.sort.isChecked() == True:
 			mode = 2
 		else:
 			mode = 0
 
-		try:
-			lister(file=self.temp_file, target=self.list_1, index=0, mode=mode, column=self.curr_col, size=self.font_size)
-			lister(file=self.temp_file, target=self.list_2, index=1, mode=mode, column=self.curr_col, size=self.font_size)
-			lister(file=self.temp_file, target=self.list_3, index=2, mode=mode, column=self.curr_col, size=self.font_size)
-		
-		except:
-			lister(file=self.curr_file, target=self.list_1, index=0, mode=mode, column=self.curr_col, size=self.font_size)
-			lister(file=self.curr_file, target=self.list_2, index=1, mode=mode, column=self.curr_col, size=self.font_size)
-			lister(file=self.curr_file, target=self.list_3, index=2, mode=mode, column=self.curr_col, size=self.font_size)
+		lister(file=self.temp_file, target=self.list_1, index=0, mode=mode, column=self.curr_col, size=self.font_size)
+		lister(file=self.temp_file, target=self.list_2, index=1, mode=mode, column=self.curr_col, size=self.font_size)
+		lister(file=self.temp_file, target=self.list_3, index=2, mode=mode, column=self.curr_col, size=self.font_size)
+
+		if mode == 0:
+			self.save(mode=1)
+			self.show_save = True
+
+
+		# try:
+		# 	lister(file=self.temp_file, target=self.list_1, index=0, mode=mode, column=self.curr_col, size=self.font_size)
+		# 	lister(file=self.temp_file, target=self.list_2, index=1, mode=mode, column=self.curr_col, size=self.font_size)
+		# 	lister(file=self.temp_file, target=self.list_3, index=2, mode=mode, column=self.curr_col, size=self.font_size)
+
+		# 	if mode == 0:
+		# 		self.save(mode=1)
+
+
+		# except: # is this needed
+		# 	lister(file=self.curr_file, target=self.list_1, index=0, mode=mode, column=self.curr_col, size=self.font_size)
+		# 	lister(file=self.curr_file, target=self.list_2, index=1, mode=mode, column=self.curr_col, size=self.font_size)
+		# 	lister(file=self.curr_file, target=self.list_3, index=2, mode=mode, column=self.curr_col, size=self.font_size)
+
 
 
 	def refresh_recents(self):
@@ -526,12 +574,8 @@ class Vocab(QWidget):
 
 		self.show_save = False
 
-		list1_items = items_text(self.list_1)
-		list2_items = items_text(self.list_2)
-		list3_items = items_text(self.list_3)
-
 		total_dicts = []
-		for (a, b, c) in zip(list1_items, list2_items, list3_items): # each letter is a column
+		for (a, b, c) in zip(*items_text(self.all_lists)): # each letter is a column
 			dictionary = {'col_1':a, 'col_2':b, 'col_3':c}
 			total_dicts.append(dictionary)
 		
@@ -546,8 +590,6 @@ class Vocab(QWidget):
 				print('error')
 
 		elif mode == 1:
-
-			self.show_save = True
 			writer(file=self.temp_file, data=total_dicts)
 
 

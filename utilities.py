@@ -4,7 +4,6 @@ from PyQt5.QtCore import QRect
 
 import csv
 import operator
-
 from os import getcwd
 from itertools import chain
 
@@ -39,12 +38,18 @@ def set_font(text, size):
 	return item
 
 
-def lister(file, target, index, mode=0, column=0, size=15):
+def lister(file, target, index=0, mode=0, column=0, size=15, multiple_writing=False):
 	"""Adds items to specified column"""
 
-	if mode == 0:
-		for name in reader(file, index=index): # get path through the dialog
-			target.addItem(set_font(name, size)) 
+	if mode == 0 and multiple_writing == True:
+		for i in target:
+			for name in reader(file, index=index): # get path through the dialog
+				i.addItem(set_font(name, size))
+			index+=1
+
+	elif mode == 0:
+		for name in reader(file, index=index):
+			target.addItem(set_font(name, size))
 
 	elif mode == 1:
 		target.addItem(set_font('', size))
@@ -78,8 +83,8 @@ def writer(file, data):
 def style_items(QLists, dark_theme=False):
 	"""Stylizes the QListWidget items for light and dark themes"""
 
-	for QList in QLists:
-		items =  [QList.item(i) for i in range(QList.count())]
+	for ls in QLists:
+		items =  [ls.item(i) for i in range(ls.count())]
 
 		for item in items:
 			if dark_theme == False:
@@ -89,10 +94,11 @@ def style_items(QLists, dark_theme=False):
 				item.setForeground(QColor(240, 240, 240))
 
 
-def items_text(QList):
+def items_text(QLists):
 	"""Storing list text"""
-
-	text =  [QList.item(i).text() for i in range(QList.count())]
+	text=[]
+	for ls in QLists:
+		text.append([ls.item(i).text() for i in range(ls.count())])
 	return text
 	
 def clear_lists(QListWidgets):
