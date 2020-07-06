@@ -61,7 +61,7 @@ rename file func
 
 get clipboard contents and add them as an item
 
-color coding the noun gender - add a column for storing the gender
+color coding the noun gender - add a column for storing the gender - SOLVED -
 
 when opening a file with one entry, it gets edited on col 2, maybe only when it's not the one previously opened
 
@@ -69,4 +69,10 @@ add column layout editing, maybe with a slider dialog for individual column size
 
 recent files are bugged, or maybe just because you don't find non saved files
 
-temporary file not hidden and not deleted if program exit is with ctrl+w 
+recent files has duplicates
+
+recent files not showing until a file save
+
+temporary file not hidden and not deleted if program exit is with ctrl+w
+
+remove some of the exception blocks

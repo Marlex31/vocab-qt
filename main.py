@@ -41,10 +41,11 @@ class Vocab(QWidget):
 		self.list_1 = QListWidget()
 		self.list_2 = QListWidget()
 		self.list_3 = QListWidget()
-		self.all_lists = [self.list_1, self.list_2, self.list_3]
+		self.list_4 = QListWidget()
+		self.all_lists = [self.list_1, self.list_2, self.list_3, self.list_4]
 
 		try:
-			lister(file=self.curr_file, target=self.all_lists, index=0, mode=0, size=self.font_size, multiple_writing=True)
+			lister(file=self.curr_file, target=self.all_lists, size=self.font_size, multiple_writing=True)
 
 		except FileNotFoundError:
 			# print(getcwd())
@@ -58,10 +59,8 @@ class Vocab(QWidget):
 		self.list_1.verticalScrollBar().valueChanged.connect(self.sync_scroll)
 		self.list_1.itemClicked.connect(self.edit_bind)
 
-		# lister(file=self.curr_file, target=self.list_2, index=1, mode=0, size=self.font_size)
 		self.list_2.clicked.connect(self.neighbour_selection)
 
-		# lister(file=self.curr_file, target=self.list_3, index=2, mode=0, size=self.font_size)
 		self.list_3.clicked.connect(self.neighbour_selection)
 
 
@@ -82,10 +81,15 @@ class Vocab(QWidget):
 		exit_event.setShortcut('Ctrl+W')
 		exit_event.triggered.connect(app.quit)
 
-		showAct = QAction('Show extras', self, checkable=True)  
-		showAct.setChecked(self.config.dark_theme)
-		showAct.setShortcut('Ctrl+E')
-		showAct.triggered.connect(self.hide_notes)
+		hide_3 = QAction('Show extras', self, checkable=True)  
+		hide_3.setChecked(self.config.dark_theme)
+		hide_3.setShortcut('Ctrl+E')
+		hide_3.triggered.connect(self.hide_col3)
+
+		hide_4 = QAction('Show extras', self, checkable=True)  
+		hide_4.setChecked(self.config.dark_theme)
+		hide_4.setShortcut('Ctrl+shift+E')
+		hide_4.triggered.connect(self.hide_col4)
 
 		addAct = QAction('Fields', self)  
 		addAct.setShortcut('Ctrl+N')
@@ -101,7 +105,7 @@ class Vocab(QWidget):
 		fileSave.setShortcut('Ctrl+S')
 
 		self.fileRecents = QMenu('Recent files', self)
-		self.refresh_recents()
+		# self.refresh_recents() # necessary?
 
 		
 		self.toggle_theme = QAction('Toggle theme', self, checkable=True)
@@ -148,26 +152,34 @@ class Vocab(QWidget):
 		self.translateAct = QAction('Translate empty fields', self)
 		self.translateAct.triggered.connect(self.translate)
 
+		self.colorAct = QAction('Toggle color mode', self, checkable=True)
+		self.colorAct.triggered.connect(self.color_mode)
+		self.colorAct.setShortcut('Ctrl+shift+V')
+
 
 		self.addFields = self.menubar.addMenu('Add')
 		self.addFields.addAction(addAct)
 		self.addFields.addAction(self.translateAct)
 
 		self.optionMenu = self.menubar.addMenu('Options')
-		self.optionMenu.addAction(showAct)
-		self.optionMenu.addAction(self.toggle_theme)
+		self.optionMenu.addAction(hide_3)
+		self.optionMenu.addAction(hide_4)
 		self.optionMenu.addAction(self.search_act)
 		self.optionMenu.addMenu(self.col_search_index)
 		self.optionMenu.addAction(self.sort)
 		self.optionMenu.addMenu(self.col_sort_index)
-		self.optionMenu.addMenu(self.font_act)
-		self.optionMenu.addAction(self.clear_selected)
 
 		self.fileMenu = self.menubar.addMenu('File')
-		self.fileMenu.addAction(exit_event)
 		self.fileMenu.addAction(fileOpen)
 		self.fileMenu.addAction(fileSave)
 		self.fileMenu.addMenu(self.fileRecents)
+		self.fileMenu.addAction(exit_event)
+
+		self.visualMenu = self.menubar.addMenu('Visual options')
+		self.visualMenu.addAction(self.toggle_theme)
+		self.visualMenu.addMenu(self.font_act)
+		self.visualMenu.addAction(self.clear_selected)
+		self.visualMenu.addAction(self.colorAct)
 
 
 		self.status_bar = QStatusBar()
@@ -180,6 +192,7 @@ class Vocab(QWidget):
 		grid.addWidget(self.list_1, 1, 0)
 		grid.addWidget(self.list_2, 1, 1)
 		grid.addWidget(self.list_3, 1, 2)
+		grid.addWidget(self.list_4, 1, 2)
 		grid.addWidget(self.search_bar, 0, 1)
 		grid.addWidget(self.status_bar)
 
@@ -192,9 +205,32 @@ class Vocab(QWidget):
 		self.list_1.scrollToBottom()
 		self.list_2.verticalScrollBar().setHidden(True)
 		self.list_3.verticalScrollBar().setHidden(True)
+		self.list_4.verticalScrollBar().setHidden(True)
 		self.list_3.setHidden(True)
+		self.list_4.setHidden(True)
 
 		self.save(mode=1)
+
+
+	def color_mode(self):
+
+		list1_items = items_text(self.list_4, multiple_lists=False)
+
+		for i in list(enumerate(list1_items)):
+			if  self.colorAct.isChecked() == True:
+
+				if i[1] == 'm':
+					color = QColor(51, 204, 255)
+				elif i[1] == 'f':
+					color = QColor(255, 153, 255)
+				else:
+					color = QColor(177, 177, 177)
+
+				self.list_1.item(i[0]).setForeground(color) # or setBackground
+
+			else:
+				self.list_1.item(i[0]).setForeground(QColor(0, 0, 0))
+
 
 	def translate(self):
 		
@@ -206,13 +242,11 @@ class Vocab(QWidget):
 				row = model.row()
 				empty_items.append(row)
 
-
 		trans_items=[]
 		for i in empty_items:
 			trans_items.append(self.list_1.item(i).text())
 
 		translator = Translator()
-
 		result = translator.translate(trans_items, src='fr', dest='ro')
 
 		for i in result:
@@ -298,7 +332,7 @@ class Vocab(QWidget):
 
 
 	def refresh_list(self):
-		"""Refreshes the contents of the lists, when sorting is used"""
+		"""Refreshes the contents of the lists when sorting is used"""
 		
 		if self.show_save == True:
 			self.save(mode=1)
@@ -320,44 +354,25 @@ class Vocab(QWidget):
 			self.show_save = True
 
 
-		# try:
-		# 	lister(file=self.temp_file, target=self.list_1, index=0, mode=mode, column=self.curr_col, size=self.font_size)
-		# 	lister(file=self.temp_file, target=self.list_2, index=1, mode=mode, column=self.curr_col, size=self.font_size)
-		# 	lister(file=self.temp_file, target=self.list_3, index=2, mode=mode, column=self.curr_col, size=self.font_size)
-
-		# 	if mode == 0:
-		# 		self.save(mode=1)
-
-
-		# except: # is this needed
-		# 	lister(file=self.curr_file, target=self.list_1, index=0, mode=mode, column=self.curr_col, size=self.font_size)
-		# 	lister(file=self.curr_file, target=self.list_2, index=1, mode=mode, column=self.curr_col, size=self.font_size)
-		# 	lister(file=self.curr_file, target=self.list_3, index=2, mode=mode, column=self.curr_col, size=self.font_size)
-
-
-
 	def refresh_recents(self):
 
-		try:
+		file_1 = QAction(self.curr_file, self)
+		self.fileRecents.addAction(file_1)
+		file_1.triggered.connect(self.clickedFileAct)
 
-		  file_1 = QAction(self.curr_file, self)
-		  self.fileRecents.addAction(file_1)
-		  file_1.triggered.connect(self.clickedFileAct)
+		if type(self.filenames) is list:
 
-		  if type(self.filenames) is list:
+		  if self.filenames[1] != None:
+			  file_2 = QAction(self.filenames[1], self)
+			  self.fileRecents.addAction(file_2)
+			  file_2.triggered.connect(self.clickedFileAct)
 
-			  if self.filenames[1] != None:
-				  file_2 = QAction(self.filenames[1], self)
-				  self.fileRecents.addAction(file_2)
-				  file_2.triggered.connect(self.clickedFileAct)
-
-			  if self.filenames[2] != None:
-				  file_3 = QAction(self.filenames[2], self)
-				  self.fileRecents.addAction(file_3)
-				  file_3.triggered.connect(self.clickedFileAct)
+		  if self.filenames[2] != None:
+			  file_3 = QAction(self.filenames[2], self)
+			  self.fileRecents.addAction(file_3)
+			  file_3.triggered.connect(self.clickedFileAct)
 		
-		except:
-		  pass
+
 
 
 	def clickedFileAct(self):
@@ -370,9 +385,11 @@ class Vocab(QWidget):
 
 		clear_lists(self.all_lists)
 
-		lister(file=self.curr_file, target=self.list_1, index=0, size=self.font_size)
-		lister(file=self.curr_file, target=self.list_2, index=1, size=self.font_size)
-		lister(file=self.curr_file, target=self.list_3, index=2, size=self.font_size)
+		try:
+			lister(file=self.curr_file, target=self.all_lists, index=0, mode=0, size=self.font_size, multiple_writing=True)
+
+		except FileNotFoundError:
+			error_display()
 
 		status(self.status_bar, self.list_1)
 		self.theme()
@@ -389,32 +406,33 @@ class Vocab(QWidget):
 		if (event.type() == QEvent.ContextMenu and source is self.list_1):
 			menu = QMenu()
 			menu.addAction("Delete row")
+			
 			if menu.exec_(event.globalPos()):
 				item = source.itemAt(event.pos())
-				try:
-					model = self.list_1.indexFromItem(item) 
-					row = model.row()
+				model = self.list_1.indexFromItem(item) 
+				row = model.row()
 
-					self.show_save = True
+				self.show_save = True
 
-					self.list_1.takeItem(row)
-					self.list_2.takeItem(row)
-					self.list_3.takeItem(row)
+				for ls in self.all_lists:
+					ls.takeItem(row) 
 
-					status(self.status_bar, self.list_1, f'Deleted row number: {row+1}.')
-					self.clearSelection()
+				status(self.status_bar, self.list_1, f'Deleted row number: {row+1}.')
+				clear_selections(self.all_lists)
 
-				except:
-					pass
 
 			return True
 		return super(Vocab, self).eventFilter(source, event)
 
 
-	def hide_notes(self): 
+	def hide_col3(self): 
 		"""Toggles showing the note column and stretches the window for clearer reading of it"""
 
 		self.list_3.setHidden(not self.list_3.isHidden())
+
+	def hide_col4(self): 
+
+		self.list_4.setHidden(not self.list_4.isHidden())
 	
 
 	def theme(self):
@@ -422,8 +440,25 @@ class Vocab(QWidget):
 
 		palette = QPalette()
 
+		# light theme
+		if  self.toggle_theme.isChecked() == False:
+
+			palette.setColor(QPalette.Window, QColor(255, 255, 255))
+			light = "background-color: rgb(255, 255, 255); color: rgb(0, 0, 0)"
+
+			self.menubar.setStyleSheet(light) 
+			self.addFields.setStyleSheet(light)
+			self.optionMenu.setStyleSheet(light)
+			self.fileMenu.setStyleSheet(light)
+			self.search_bar.setStyleSheet(light)
+			self.status_bar.setStyleSheet(light)
+
+			for ls in self.all_lists: ls.setStyleSheet(light)
+
+			style_items(self.all_lists, dark_theme=False)
+
 		# dark theme
-		if  self.toggle_theme.isChecked() == True:
+		elif  self.toggle_theme.isChecked() == True:
 
 			palette.setColor(QPalette.Window, QColor(0, 0, 0))
 			dark = "background-color: rgb(0, 0, 0); color: rgb(255, 255, 255);"
@@ -440,22 +475,6 @@ class Vocab(QWidget):
 
 			style_items(self.all_lists, dark_theme=True)
 		
-		# light theme
-		elif  self.toggle_theme.isChecked() == False:
-
-			palette.setColor(QPalette.Window, QColor(255, 255, 255))
-			light = "background-color: rgb(255, 255, 255); color: rgb(0, 0, 0)"
-
-			self.menubar.setStyleSheet(light) 
-			self.addFields.setStyleSheet(light)
-			self.optionMenu.setStyleSheet(light)
-			self.fileMenu.setStyleSheet(light)
-			self.search_bar.setStyleSheet(light)
-			self.status_bar.setStyleSheet(light)
-
-			for ls in self.all_lists: ls.setStyleSheet(light)
-
-			style_items(self.all_lists, dark_theme=False)
 
 		self.setPalette(palette)
 
@@ -472,7 +491,7 @@ class Vocab(QWidget):
 		status(self.status_bar, self.list_1, f'Found {len(search)} results.')
 		
 
-		# testing search in all column
+		# testing search in all columns
 
 		# search_list =[]
 		# for x in range(3):
@@ -503,10 +522,9 @@ class Vocab(QWidget):
 				self.num = 0
 				model_index = self.all_lists[self.search_col].indexFromItem(search[self.num])
 
+
 			item_index = model_index.row()
-
 			for ls in self.all_lists: ls.item(item_index).setSelected(True)
-
 			self.list_1.scrollToItem(self.list_1.item(item_index), QAbstractItemView.PositionAtCenter)
 
 
@@ -523,14 +541,13 @@ class Vocab(QWidget):
 
 			else:
 				lister(file=self.curr_file, target=self.list_3, index=x, mode=1, size=self.font_size)
+				lister(file=self.curr_file, target=self.list_4, index=x, mode=1, size=self.font_size)
 
 		item =  self.list_1.item(self.list_1.count()-1)
 		self.list_1.editItem(item)
 		status(self.status_bar, self.list_1)
 		
-		self.list_1.scrollToBottom()
-		self.list_2.scrollToBottom()
-		self.list_3.scrollToBottom()
+		for ls in self.all_lists: ls.scrollToBottom()
 
 
 		# removes leading and trailing spaces from the second last item on col_2
@@ -547,7 +564,6 @@ class Vocab(QWidget):
 
 		for ls in self.all_lists:
 			ls.item(item.row()).setSelected(True)
-		# print(dir(item))
 
 
 	def fileDialog(self):
@@ -561,10 +577,8 @@ class Vocab(QWidget):
 		self.setWindowTitle(f'{split_name(self.curr_file)}')
 
 		clear_lists(self.all_lists)
-
-		lister(file=self.curr_file ,target=self.list_1, index=0, size=self.font_size)
-		lister(file=self.curr_file ,target=self.list_2, index=1, size=self.font_size)
-		lister(file=self.curr_file ,target=self.list_3, index=2, size=self.font_size)
+		lister(file=self.curr_file, target=self.all_lists, size=self.font_size, multiple_writing=True)
+		self.list_1.scrollToBottom()
 
 		status(self.status_bar, self.list_1)
 		self.theme()
@@ -575,11 +589,10 @@ class Vocab(QWidget):
 		self.show_save = False
 
 		total_dicts = []
-		for (a, b, c) in zip(*items_text(self.all_lists)): # each letter is a column
-			dictionary = {'col_1':a, 'col_2':b, 'col_3':c}
-			total_dicts.append(dictionary)
+		for (a, b, c, d) in zip(*items_text(self.all_lists)): # each letter is a column
+			total_dicts.append({'col_1':a, 'col_2':b, 'col_3':c, 'col_4':d})
 		
-		if mode == 0:
+		if mode == 0: # saves to the main csv file
 
 			writer(file=self.curr_file, data=total_dicts)
 			status(self.status_bar, self.list_1, ('Saved current changes.'))
@@ -587,9 +600,9 @@ class Vocab(QWidget):
 			try:
 				self.config.save(dark_theme=self.theme_bool, recent_files=[self.curr_file, None, None], window_size=self.geometry().getRect())
 			except:
-				print('error')
+				pass
 
-		elif mode == 1:
+		elif mode == 1: # saves to the temp csv file, used for sorting
 			writer(file=self.temp_file, data=total_dicts)
 
 

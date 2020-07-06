@@ -32,7 +32,7 @@ def set_font(text, size):
 	font.setFamily('Helvatica')
 	item.setFont(font)
 
-	# item.setIcon(QIcon('book.png'))
+	# item.setIcon(QIcon('Images/book.png'))
 	item.setFlags(item.flags() | 2)
 
 	return item
@@ -72,7 +72,7 @@ def reader(filename, index):
 def writer(file, data):
 	"""Writes the contents of the lists inside csv files"""
 
-	fieldnames = ["col_1","col_2","col_3"]
+	fieldnames = ["col_1","col_2","col_3", "col_4"]
 	with open(file, 'w', encoding='utf8', newline='') as w:
 		w_write = csv.DictWriter(w, delimiter=',', fieldnames=fieldnames)
 		w_write.writeheader()
@@ -94,11 +94,16 @@ def style_items(QLists, dark_theme=False):
 				item.setForeground(QColor(240, 240, 240))
 
 
-def items_text(QLists):
+def items_text(QLists, multiple_lists=True):
 	"""Storing list text"""
-	text=[]
-	for ls in QLists:
-		text.append([ls.item(i).text() for i in range(ls.count())])
+	
+	if multiple_lists == True:
+		text=[]
+		for ls in QLists:
+			text.append([ls.item(i).text() for i in range(ls.count())])
+	else:
+		text = [QLists.item(i).text() for i in range(QLists.count())]
+
 	return text
 	
 def clear_lists(QListWidgets):
