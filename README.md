@@ -10,6 +10,6 @@ Linux images (Fedora 31):
 
 Windows 10 images:
 
-![alt text](https://github.com/Marlex31/vocabulary-gui/blob/master/Images/windows_file "Windows file menu")
+![alt text](https://github.com/Marlex31/vocabulary-gui/blob/master/Images/windows_file.png "Windows file menu")
 
-![alt text](https://github.com/Marlex31/vocabulary-gui/blob/master/Images/windows_options "Windows options menu")
+![alt text](https://github.com/Marlex31/vocabulary-gui/blob/master/Images/windows_options.png "Windows options menu")
