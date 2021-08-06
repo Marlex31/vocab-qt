@@ -76,3 +76,7 @@ recent files not showing until a file save
 temporary file not hidden and not deleted if program exit is with ctrl+w
 
 remove some of the exception blocks
+
+sorting makes the temp file empty after using it 3 times
+
+sorting loses unsaved changes (again)

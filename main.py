@@ -185,11 +185,11 @@ class Vocab(QWidget):
 		self.status_bar = QStatusBar()
 		status(self.status_bar, self.list_1)
 
-
 		grid = QGridLayout()
 		grid.setSpacing(10)
 		grid.addWidget(self.menubar, 0, 0)
 		grid.addWidget(self.list_1, 1, 0)
+
 		grid.addWidget(self.list_2, 1, 1)
 		grid.addWidget(self.list_3, 1, 2)
 		grid.addWidget(self.list_4, 1, 2)
@@ -214,9 +214,9 @@ class Vocab(QWidget):
 
 	def color_mode(self):
 
-		list1_items = items_text(self.list_4, multiple_lists=False)
+		list4_items = items_text(self.list_4, multiple_lists=False)
 
-		for i in list(enumerate(list1_items)):
+		for i in list(enumerate(list4_items)):
 			if  self.colorAct.isChecked() == True:
 
 				if i[1] == 'm':
@@ -279,6 +279,7 @@ class Vocab(QWidget):
 
 		self.list_2.verticalScrollBar().setValue(scroll_location)
 		self.list_3.verticalScrollBar().setValue(scroll_location)
+		self.list_4.verticalScrollBar().setValue(scroll_location)
 
 
 	def edit_next_item(self, event):

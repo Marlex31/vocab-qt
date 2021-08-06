@@ -138,9 +138,9 @@ def sorting(file, column):
 		new_list = sorted(f_read, key=operator.itemgetter(column), reverse=False) # alphabetical sorting by a specified column index
 		unsorted_list=[]
 
-		unsorted_list.extend(a for a,b,c in new_list)
-		unsorted_list.extend(b for a,b,c in new_list)
-		unsorted_list.extend(c for a,b,c in new_list)
+		unsorted_list.extend(a for a,b,c,d in new_list)
+		unsorted_list.extend(b for a,b,c,d in new_list)
+		unsorted_list.extend(c for a,b,c,d in new_list)
 
 		start = 0
 		end = len(new_list)
